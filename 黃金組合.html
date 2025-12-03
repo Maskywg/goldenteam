@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perplexity + Gemini 黃金工作流</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- Babel for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <style>
+        body { margin: 0; overflow-x: hidden; background-color: #0f172a; }
+        .animate-fade-in-down { animation: fadeInDown 1s ease-out; }
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        // --- Icon Components (SVG Definitions) ---
+        // 由於在單一 HTML 中無法 import lucide-react，我們直接定義 SVG 組件
+        const IconBase = ({ children, className }) => (
+            <svg 
+                xmlns="http://www.w3.org/2000/svg" 
+                width="24" height="24" viewBox="0 0 24 24" 
+                fill="none" stroke="currentColor" strokeWidth="2" 
+                strokeLinecap="round" strokeLinejoin="round" 
+                className={className}
+            >
+                {children}
+            </svg>
+        );
+
+        const Icons = {
+            Search: (props) => <IconBase {...props}><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></IconBase>,
+            Globe: (props) => <IconBase {...props}><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></IconBase>,
+            FileUp: (props) => <IconBase {...props}><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M12 12v6"/><path d="m15 15-3-3-3 3"/></IconBase>,
+            ChefHat: (props) => <IconBase {...props}><path d="M6 13.87A4 4 0 0 1 7.41 6a5.11 5.11 0 0 1 1.05-1.54 5 5 0 0 1 7.08 0A5.11 5.11 0 0 1 16.59 6 4 4 0 0 1 18 13.87V21H6Z"/><line x1="6" x2="18" y1="17" y2="17"/></IconBase>,
+            GitFork: (props) => <IconBase {...props}><circle cx="12" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><circle cx="18" cy="6" r="3"/><path d="M18 9v1a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V9"/><line x1="12" x2="12" y1="12" y2="15"/></IconBase>,
+            Zap: (props) => <IconBase {...props}><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></IconBase>,
+            Layers: (props) => <IconBase {...props}><path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/><path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"/><path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"/></IconBase>,
+            PenTool: (props) => <IconBase {...props}><path d="m12 19 7-7 3 3-7 7-3-3z"/><path d="m18 13-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="m2 2 7.586 7.586"/><circle cx="11" cy="11" r="2"/></IconBase>,
+            ArrowRight: (props) => <IconBase {...props}><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></IconBase>,
+            Share2: (props) => <IconBase {...props}><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" x2="15.42" y1="13.51" y2="17.49"/><line x1="15.41" x2="8.59" y1="6.51" y2="10.49"/></IconBase>,
+            CheckCircle2: (props) => <IconBase {...props}><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></IconBase>,
+            ExternalLink: (props) => <IconBase {...props}><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" x2="21" y1="14" y2="3"/></IconBase>,
+            BookOpen: (props) => <IconBase {...props}><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></IconBase>
+        };
+
+        // --- Digital Rain Component ---
+        const DigitalRain = () => {
+            const canvasRef = useRef(null);
+
+            useEffect(() => {
+                const canvas = canvasRef.current;
+                const ctx = canvas.getContext('2d');
+
+                const resize = () => {
+                    canvas.width = window.innerWidth;
+                    canvas.height = window.innerHeight;
+                };
+                resize();
+
+                const symbols = '01';
+                const fontSize = 14;
+                const columns = canvas.width / fontSize;
+                const drops = [];
+
+                for (let i = 0; i < columns; i++) {
+                    drops[i] = 1;
+                }
+
+                const draw = () => {
+                    ctx.fillStyle = 'rgba(15, 23, 42, 0.1)'; 
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                    ctx.fillStyle = '#0f0'; 
+                    ctx.font = `${fontSize}px monospace`;
+
+                    for (let i = 0; i < drops.length; i++) {
+                        const text = symbols.charAt(Math.floor(Math.random() * symbols.length));
+                        ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+
+                        if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+                            drops[i] = 0;
+                        }
+                        drops[i]++;
+                    }
+                };
+
+                const interval = setInterval(draw, 33);
+                window.addEventListener('resize', resize);
+
+                return () => {
+                    clearInterval(interval);
+                    window.removeEventListener('resize', resize);
+                };
+            }, []);
+
+            return <canvas ref={canvasRef} className="fixed inset-0 z-0 pointer-events-none opacity-30" />;
+        };
+
+        // --- Main App Component ---
+        const WorkflowApp = () => {
+            const [activeStep, setActiveStep] = useState(null);
+
+            const steps = [
+                {
+                    id: 1,
+                    title: "獵人階段：精準素材搜集",
+                    description: "利用 Perplexity 當作「獵人」過濾雜訊。輸入問題並追問權威來源（如白皮書），將篩選後的高品質內容導出為 PDF 或文字檔存於本地 (Local)。",
+                    icon: <Icons.Search className="w-6 h-6" />,
+                    tool: "Perplexity",
+                    url: "https://www.perplexity.ai/",
+                    color: "bg-teal-900/60 text-teal-200 border-teal-500",
+                    badge: "Hunter Mode"
+                },
+                {
+                    id: 2,
+                    title: "餵食資料：建立無幻覺知識庫",
+                    description: "將下載的 PDF 檔案直接「上傳 (Upload)」給 Gemini/NotebookLM。確保 AI 讀取完整內容，避免網址讀取失敗，並限制 AI 僅根據提供資料回答。",
+                    icon: <Icons.FileUp className="w-6 h-6" />,
+                    tool: "File Upload",
+                    url: "https://notebooklm.google.com/",
+                    demoUrl: "https://docs.google.com/presentation/d/1bwFOl3G_BSvatDErgaYkfDvrMWca22KlMdwHf7dSe0E/edit?usp=sharing",
+                    color: "bg-blue-900/60 text-blue-200 border-blue-500",
+                    badge: "Pro Tip: Upload Files"
+                },
+                {
+                    id: 3,
+                    title: "廚師階段：深度交叉分析",
+                    description: "Gemini 1.5 Pro 發揮長文本優勢，消化所有食材。下達深度指令（如「分析庫存預測觀點異同」），產出高含金量的結構化大綱。",
+                    icon: <Icons.ChefHat className="w-6 h-6" />,
+                    tool: "Gemini 1.5 Pro",
+                    url: "https://gemini.google.com/",
+                    color: "bg-purple-900/60 text-purple-200 border-purple-500",
+                    badge: "Chef Mode"
+                },
+                {
+                    id: 4,
+                    title: "生成路徑：雙軌分流",
+                    description: "取得大綱後，根據工具特性選擇以下兩條路徑，最終皆匯出為 PPTx 格式：",
+                    icon: <Icons.GitFork className="w-6 h-6" />,
+                    tool: "Dual Strategy",
+                    color: "bg-gradient-to-r from-pink-900/60 to-rose-900/60 text-rose-200 border-rose-500",
+                    badge: "關鍵分流",
+                    paths: [
+                        {
+                            name: "途徑 1：Gemini 3.0 Canvas 流",
+                            desc: "Gemini 3.0 ➔ Canvas 生成簡報 ➔ 匯出 PPTx",
+                            icon: <Icons.Zap className="w-4 h-4 text-yellow-400" />
+                        },
+                        {
+                            name: "途徑 2：NotebookLM 轉檔流",
+                            desc: "NotebookLM 生成 PDF ➔ Canva/PPT 轉檔 ➔ 匯出 PPTx",
+                            icon: <Icons.Layers className="w-4 h-4 text-blue-400" />
+                        }
+                    ]
+                },
+                {
+                    id: 5,
+                    title: "Google Slides 整合與精修",
+                    description: "雙軌匯流點。將 PPTx 匯入後，進行重新編輯、美化與重新製圖。在此階段呼叫 Nano Banana Pro 進行專業級修飾。",
+                    icon: <Icons.PenTool className="w-6 h-6" />,
+                    tool: "Nano Banana Pro",
+                    url: "https://slides.google.com/",
+                    color: "bg-yellow-900/60 text-yellow-200 border-yellow-500",
+                    badge: "美化重製"
+                },
+                {
+                    id: 6,
+                    title: "簡報輸出與分享",
+                    description: "完成的簡報可匯出為 PDF/PPTX 或生成連結直接在線共享，完美展示經過多重 AI 優化後的成果。",
+                    icon: <Icons.Share2 className="w-6 h-6" />,
+                    tool: "Google Slides",
+                    url: "https://slides.google.com/",
+                    color: "bg-yellow-900/60 text-yellow-200 border-yellow-500",
+                    badge: "成果發布"
+                }
+            ];
+
+            return (
+                <div className="min-h-screen font-sans text-slate-200 p-4 md:p-8 relative overflow-hidden">
+                    <DigitalRain />
+                    
+                    <div className="relative z-10">
+                        {/* Header Section */}
+                        <header className="max-w-4xl mx-auto text-center mb-12 animate-fade-in-down">
+                            <div className="inline-flex items-center justify-center p-2 bg-slate-800/80 rounded-full shadow-sm mb-4 border border-slate-700 backdrop-blur-sm">
+                                <span className="bg-gradient-to-r from-teal-500 to-purple-600 text-white text-xs font-bold px-3 py-1 rounded-full mr-2">Power User Workflow</span>
+                                <span className="text-slate-300 text-sm font-medium">Hunter & Chef & Artist</span>
+                            </div>
+                            <h1 className="text-3xl md:text-5xl font-extrabold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-teal-400 via-blue-500 to-purple-500">
+                                Perplexity + Gemini 黃金組合
+                            </h1>
+                            <p className="text-lg text-slate-400 max-w-2xl mx-auto leading-relaxed">
+                                從獵人搜集、廚師料理，到 <span className="font-bold text-rose-400">雙軌生成與 Nano 精修</span>，打造最完整的 AI 工作流。
+                            </p>
+                        </header>
+
+                        {/* Main Workflow Visualization */}
+                        <main className="max-w-3xl mx-auto relative">
+                            {/* Vertical Connecting Line */}
+                            <div className="absolute left-8 md:left-1/2 top-4 bottom-4 w-1 bg-slate-700 transform -translate-x-1/2 hidden md:block z-0"></div>
+                            <div className="absolute left-6 top-4 bottom-4 w-1 bg-slate-700 md:hidden z-0"></div>
+
+                            <div className="space-y-8 relative z-10">
+                                {steps.map((step, index) => {
+                                    const isEven = index % 2 === 0;
+                                    const isActive = activeStep === step.id;
+
+                                    return (
+                                        <div 
+                                            key={step.id}
+                                            className={`flex flex-col md:flex-row items-center group ${isEven ? 'md:flex-row-reverse' : ''}`}
+                                            onMouseEnter={() => setActiveStep(step.id)}
+                                            onMouseLeave={() => setActiveStep(null)}
+                                        >
+                                            {/* Content Card */}
+                                            <div className={`w-full md:w-5/12 pl-12 md:pl-0 ${isEven ? 'md:pl-8' : 'md:pr-8'}`}>
+                                                <div 
+                                                    className={`
+                                                        relative p-6 rounded-2xl shadow-md border-l-4 transition-all duration-300 transform cursor-default backdrop-blur-md flex flex-col
+                                                        ${step.color}
+                                                        ${isActive ? 'scale-105 shadow-xl -translate-y-1 bg-opacity-80' : 'hover:shadow-lg bg-opacity-60'}
+                                                    `}
+                                                >
+                                                    <div className="flex justify-between items-start mb-3">
+                                                        <span className="inline-block px-2 py-1 bg-slate-800/60 rounded text-xs font-bold tracking-wider backdrop-blur-sm">
+                                                            {step.badge}
+                                                        </span>
+                                                        <span className="text-xs font-semibold opacity-70">Step 0{step.id}</span>
+                                                    </div>
+                                                    <h3 className="text-xl font-bold mb-2 text-slate-100 flex items-center gap-2">
+                                                        {step.title}
+                                                    </h3>
+                                                    <p className="text-sm text-slate-300 leading-relaxed mb-4">
+                                                        {step.description}
+                                                    </p>
+
+                                                    {/* Paths for Step 4 */}
+                                                    {step.paths && (
+                                                        <div className="space-y-3 mt-2 mb-4">
+                                                            {step.paths.map((path, pIdx) => (
+                                                                <div key={pIdx} className="bg-slate-800/50 p-3 rounded-lg border border-white/10 hover:bg-slate-800/80 transition-colors">
+                                                                    <div className="flex items-center gap-2 mb-1">
+                                                                        {path.icon}
+                                                                        <span className="font-bold text-sm text-white">{path.name}</span>
+                                                                    </div>
+                                                                    <div className="flex items-center gap-2 text-xs text-slate-400 pl-6">
+                                                                        <span>{path.desc}</span>
+                                                                    </div>
+                                                                </div>
+                                                            ))}
+                                                            <div className="flex justify-center -mb-2 opacity-50">
+                                                                <Icons.ArrowRight className="w-4 h-4 text-slate-400 rotate-90" />
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                    
+                                                    {/* Buttons */}
+                                                    <div className="mt-auto pt-2 flex flex-wrap justify-end gap-2">
+                                                        {step.demoUrl && (
+                                                            <a 
+                                                                href={step.demoUrl}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                className="inline-flex items-center px-3 py-2 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-xs font-bold uppercase tracking-wider transition-all duration-200 hover:scale-105 active:scale-95 text-emerald-200"
+                                                                onClick={(e) => e.stopPropagation()}
+                                                            >
+                                                                查看說明
+                                                                <Icons.BookOpen className="ml-2 w-3 h-3" />
+                                                            </a>
+                                                        )}
+
+                                                        {step.url && (
+                                                            <a 
+                                                                href={step.url}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                className="inline-flex items-center px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 border border-white/20 text-xs font-bold uppercase tracking-wider transition-all duration-200 hover:scale-105 active:scale-95"
+                                                                onClick={(e) => e.stopPropagation()}
+                                                            >
+                                                                Open Tool
+                                                                <Icons.ExternalLink className="ml-2 w-3 h-3" />
+                                                            </a>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* Center Icon Node */}
+                                            <div className="absolute left-6 md:left-1/2 transform -translate-x-1/2 flex flex-col items-center justify-center">
+                                                <div 
+                                                    className={`
+                                                        w-12 h-12 rounded-full border-4 border-slate-800 shadow-lg flex items-center justify-center transition-all duration-500
+                                                        ${isActive ? 'bg-slate-700 text-white scale-110' : 'bg-slate-900 text-slate-400'}
+                                                    `}
+                                                >
+                                                    {step.icon}
+                                                </div>
+                                            </div>
+
+                                            {/* Spacer */}
+                                            <div className="hidden md:block w-5/12"></div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+
+                            {/* End Node */}
+                            <div className="flex justify-center mt-12 relative z-10">
+                                <div className="flex flex-col items-center">
+                                    <div className="w-16 h-16 bg-green-600 rounded-full flex items-center justify-center text-white shadow-xl animate-bounce">
+                                        <Icons.CheckCircle2 size={32} />
+                                    </div>
+                                    <span className="mt-3 font-bold text-green-400 bg-slate-800/80 px-4 py-1 rounded-full backdrop-blur-sm">黃金流程完成</span>
+                                </div>
+                            </div>
+                        </main>
+
+                        {/* Benefits Summary Grid */}
+                        <section className="max-w-6xl mx-auto mt-20 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                            <BenefitCard 
+                                title="Perplexity (獵人)" 
+                                subtitle="精準搜集"
+                                features={["Pro Search 追問", "過濾雜訊", "下載 PDF 素材"]}
+                                color="bg-teal-900/40 border-teal-700 text-teal-300"
+                            />
+                            <BenefitCard 
+                                title="Gemini 1.5 Pro (廚師)" 
+                                subtitle="深度料理"
+                                features={["2M tokens 長窗口", "交叉比對分析", "根除幻覺"]}
+                                color="bg-purple-900/40 border-purple-700 text-purple-300"
+                            />
+                            <BenefitCard 
+                                title="雙軌生成 (戰術)" 
+                                subtitle="殊途同歸"
+                                features={["Gemini 3.0 Canvas 流", "NotebookLM 轉檔流", "皆匯出為 PPTx"]}
+                                color="bg-rose-900/40 border-rose-700 text-rose-300"
+                            />
+                            <BenefitCard 
+                                title="Nano Banana Pro (美化)" 
+                                subtitle="完美成果"
+                                features={["Google Slides 整合", "重新製圖", "專業級修飾"]}
+                                color="bg-yellow-900/40 border-yellow-700 text-yellow-300"
+                            />
+                        </section>
+
+                        <footer className="mt-16 text-center text-slate-500 text-sm pb-8">
+                            <p>© 2025 Power User Workflow Visualization</p>
+                        </footer>
+                    </div>
+                </div>
+            );
+        };
+
+        const BenefitCard = ({ title, subtitle, features, color }) => (
+            <div className={`p-6 rounded-xl border ${color} hover:shadow-md transition-shadow backdrop-blur-sm bg-opacity-40`}>
+                <h4 className="text-lg font-bold mb-1 text-slate-200">{title}</h4>
+                <p className="text-sm opacity-80 mb-4 uppercase tracking-wide font-semibold">{subtitle}</p>
+                <ul className="space-y-2">
+                    {features.map((item, idx) => (
+                        <li key={idx} className="flex items-center text-sm">
+                            <div className="w-1.5 h-1.5 rounded-full bg-current mr-2 opacity-60"></div>
+                            {item}
+                        </li>
+                    ))}
+                </ul>
+            </div>
+        );
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<WorkflowApp />);
+    </script>
+</body>
+</html>
