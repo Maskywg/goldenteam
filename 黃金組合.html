@@ -31,7 +31,6 @@
         const { useState, useEffect, useRef } = React;
 
         // --- Icon Components (SVG Definitions) ---
-        // 由於在單一 HTML 中無法 import lucide-react，我們直接定義 SVG 組件
         const IconBase = ({ children, className }) => (
             <svg 
                 xmlns="http://www.w3.org/2000/svg" 
@@ -54,10 +53,13 @@
             Layers: (props) => <IconBase {...props}><path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/><path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"/><path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"/></IconBase>,
             PenTool: (props) => <IconBase {...props}><path d="m12 19 7-7 3 3-7 7-3-3z"/><path d="m18 13-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="m2 2 7.586 7.586"/><circle cx="11" cy="11" r="2"/></IconBase>,
             ArrowRight: (props) => <IconBase {...props}><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></IconBase>,
+            ArrowLeftRight: (props) => <IconBase {...props}><path d="M8 3 4 7l4 4"/><path d="M4 7h16"/><path d="m16 21 4-4-4-4"/><path d="M20 17H4"/></IconBase>,
             Share2: (props) => <IconBase {...props}><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" x2="15.42" y1="13.51" y2="17.49"/><line x1="15.41" x2="8.59" y1="6.51" y2="10.49"/></IconBase>,
             CheckCircle2: (props) => <IconBase {...props}><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></IconBase>,
             ExternalLink: (props) => <IconBase {...props}><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" x2="21" y1="14" y2="3"/></IconBase>,
-            BookOpen: (props) => <IconBase {...props}><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></IconBase>
+            BookOpen: (props) => <IconBase {...props}><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></IconBase>,
+            Sparkles: (props) => <IconBase {...props}><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></IconBase>,
+            FileText: (props) => <IconBase {...props}><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/><line x1="10" x2="8" y1="9" y2="9"/></IconBase>
         };
 
         // --- Digital Rain Component ---
@@ -120,43 +122,56 @@
             const steps = [
                 {
                     id: 1,
-                    title: "獵人階段：精準素材搜集",
-                    description: "利用 Perplexity 當作「獵人」過濾雜訊。輸入問題並追問權威來源（如白皮書），將篩選後的高品質內容導出為 PDF 或文字檔存於本地 (Local)。",
+                    title: "獵人階段：雙模組搜集",
+                    description: "啟動獵人模式，根據需求選擇搜集引擎。既可利用 Perplexity 進行廣度掃描，也可運用 Gemini Deep Research 進行深度挖掘。",
                     icon: <Icons.Search className="w-6 h-6" />,
-                    tool: "Perplexity",
-                    url: "https://www.perplexity.ai/",
+                    tool: "Perplexity & Gemini",
                     color: "bg-teal-900/60 text-teal-200 border-teal-500",
-                    badge: "Hunter Mode"
+                    badge: "Hunter Mode",
+                    paths: [
+                        {
+                            name: "獵人 1：Perplexity 廣度獵捕",
+                            desc: "輸入問題追問權威來源，過濾雜訊，導出 PDF。",
+                            icon: <Icons.Globe className="w-4 h-4 text-teal-400" />
+                        },
+                        {
+                            name: "獵人 2：Gemini 深度研究",
+                            desc: "運用 Deep Research 進行專題挖掘，獲取深層洞察。",
+                            icon: <Icons.Sparkles className="w-4 h-4 text-purple-400" />
+                        }
+                    ]
                 },
                 {
                     id: 2,
-                    title: "餵食資料：建立無幻覺知識庫",
-                    description: "將下載的 PDF 檔案直接「上傳 (Upload)」給 Gemini/NotebookLM。確保 AI 讀取完整內容，避免網址讀取失敗，並限制 AI 僅根據提供資料回答。",
-                    icon: <Icons.FileUp className="w-6 h-6" />,
-                    tool: "File Upload",
+                    title: "廚師階段：資料餵食與深度料理",
+                    description: "將 Perplexity 與 Gemini 蒐集的資料上傳至 NotebookLM。利用其 RAG 技術建立無幻覺知識庫，執行從數據比對到觀點提煉的一站式料理。",
+                    icon: <Icons.ChefHat className="w-6 h-6" />,
+                    tool: "NotebookLM",
                     url: "https://notebooklm.google.com/",
                     demoUrl: "https://docs.google.com/presentation/d/1bwFOl3G_BSvatDErgaYkfDvrMWca22KlMdwHf7dSe0E/edit?usp=sharing",
-                    color: "bg-blue-900/60 text-blue-200 border-blue-500",
-                    badge: "Pro Tip: Upload Files"
+                    color: "bg-purple-900/60 text-purple-200 border-purple-500",
+                    badge: "Chef Mode",
+                    paths: [
+                        {
+                            name: "細項 1：交叉比對",
+                            desc: "比對不同來源的數據，識別矛盾點與資訊落差，確保引用權威與準確。",
+                            icon: <Icons.ArrowLeftRight className="w-4 h-4 text-purple-400" />
+                        },
+                        {
+                            name: "細項 2：分析與結論",
+                            desc: "整合驗證後的資訊，提煉關鍵洞察 (Insights)，生成具備邏輯的簡報大綱。",
+                            icon: <Icons.FileText className="w-4 h-4 text-purple-400" />
+                        }
+                    ]
                 },
                 {
                     id: 3,
-                    title: "廚師階段：深度交叉分析",
-                    description: "Gemini 1.5 Pro 發揮長文本優勢，消化所有食材。下達深度指令（如「分析庫存預測觀點異同」），產出高含金量的結構化大綱。",
-                    icon: <Icons.ChefHat className="w-6 h-6" />,
-                    tool: "Gemini 1.5 Pro",
-                    url: "https://gemini.google.com/",
-                    color: "bg-purple-900/60 text-purple-200 border-purple-500",
-                    badge: "Chef Mode"
-                },
-                {
-                    id: 4,
-                    title: "生成路徑：雙軌分流",
+                    title: "簡報生成：雙軌分流",
                     description: "取得大綱後，根據工具特性選擇以下兩條路徑，最終皆匯出為 PPTx 格式：",
                     icon: <Icons.GitFork className="w-6 h-6" />,
                     tool: "Dual Strategy",
                     color: "bg-gradient-to-r from-pink-900/60 to-rose-900/60 text-rose-200 border-rose-500",
-                    badge: "關鍵分流",
+                    badge: "簡報生成",
                     paths: [
                         {
                             name: "途徑 1：Gemini 3.0 Canvas 流",
@@ -171,7 +186,7 @@
                     ]
                 },
                 {
-                    id: 5,
+                    id: 4,
                     title: "Google Slides 整合與精修",
                     description: "雙軌匯流點。將 PPTx 匯入後，進行重新編輯、美化與重新製圖。在此階段呼叫 Nano Banana Pro 進行專業級修飾。",
                     icon: <Icons.PenTool className="w-6 h-6" />,
@@ -181,7 +196,7 @@
                     badge: "美化重製"
                 },
                 {
-                    id: 6,
+                    id: 5,
                     title: "簡報輸出與分享",
                     description: "完成的簡報可匯出為 PDF/PPTX 或生成連結直接在線共享，完美展示經過多重 AI 優化後的成果。",
                     icon: <Icons.Share2 className="w-6 h-6" />,
@@ -251,7 +266,7 @@
                                                         {step.description}
                                                     </p>
 
-                                                    {/* Paths for Step 4 */}
+                                                    {/* Paths for Step 1, Step 2 & Step 3 */}
                                                     {step.paths && (
                                                         <div className="space-y-3 mt-2 mb-4">
                                                             {step.paths.map((path, pIdx) => (
@@ -335,15 +350,15 @@
                         {/* Benefits Summary Grid */}
                         <section className="max-w-6xl mx-auto mt-20 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                             <BenefitCard 
-                                title="Perplexity (獵人)" 
-                                subtitle="精準搜集"
-                                features={["Pro Search 追問", "過濾雜訊", "下載 PDF 素材"]}
+                                title="雙模組獵人 (搜集)" 
+                                subtitle="Perplexity & Gemini"
+                                features={["獵人1：Perplexity 廣搜", "獵人2：Gemini 深研", "全方位素材獲取"]}
                                 color="bg-teal-900/40 border-teal-700 text-teal-300"
                             />
                             <BenefitCard 
-                                title="Gemini 1.5 Pro (廚師)" 
+                                title="NotebookLM (廚師)" 
                                 subtitle="深度料理"
-                                features={["2M tokens 長窗口", "交叉比對分析", "根除幻覺"]}
+                                features={["建立無幻覺知識庫", "交叉比對分析", "產出結構大綱"]}
                                 color="bg-purple-900/40 border-purple-700 text-purple-300"
                             />
                             <BenefitCard 
