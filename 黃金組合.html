@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Perplexity + Gemini 黃金工作流</title>
+    <title>Perplexity + Gemini 黃金工作流 (HITL版)</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -15,6 +15,9 @@
     <!-- Babel for JSX -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
+    <!-- Marked for Markdown -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
     <style>
         body { margin: 0; overflow-x: hidden; background-color: #0f172a; }
         .animate-fade-in-down { animation: fadeInDown 1s ease-out; }
@@ -22,6 +25,11 @@
             from { opacity: 0; transform: translateY(-20px); }
             to { opacity: 1; transform: translateY(0); }
         }
+        .markdown-body ul { list-style-type: disc; padding-left: 1.5em; margin-bottom: 1em; }
+        .markdown-body ol { list-style-type: decimal; padding-left: 1.5em; margin-bottom: 1em; }
+        .markdown-body h1, .markdown-body h2, .markdown-body h3 { margin-top: 1em; margin-bottom: 0.5em; font-weight: bold; }
+        .markdown-body p { margin-bottom: 1em; }
+        .markdown-body strong { color: #a5b4fc; }
     </style>
 </head>
 <body>
@@ -29,6 +37,7 @@
 
     <script type="text/babel">
         const { useState, useEffect, useRef } = React;
+        const DEFAULT_API_KEY = ""; 
 
         // --- Icon Components (SVG Definitions) ---
         const IconBase = ({ children, className }) => (
@@ -59,65 +68,94 @@
             ExternalLink: (props) => <IconBase {...props}><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" x2="21" y1="14" y2="3"/></IconBase>,
             BookOpen: (props) => <IconBase {...props}><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></IconBase>,
             Sparkles: (props) => <IconBase {...props}><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></IconBase>,
-            FileText: (props) => <IconBase {...props}><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/><line x1="10" x2="8" y1="9" y2="9"/></IconBase>
+            FileText: (props) => <IconBase {...props}><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/><line x1="10" x2="8" y1="9" y2="9"/></IconBase>,
+            Bot: (props) => <IconBase {...props}><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></IconBase>,
+            X: (props) => <IconBase {...props}><path d="M18 6 6 18"/><path d="m6 6 12 12"/></IconBase>,
+            UserCog: (props) => <IconBase {...props}><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><circle cx="19" cy="11" r="2"/><path d="M19 8v1"/><path d="M19 13v1"/><path d="M16 11h1"/><path d="M21 11h1"/></IconBase>
         };
 
-        // --- Digital Rain Component ---
         const DigitalRain = () => {
             const canvasRef = useRef(null);
-
             useEffect(() => {
                 const canvas = canvasRef.current;
                 const ctx = canvas.getContext('2d');
-
-                const resize = () => {
-                    canvas.width = window.innerWidth;
-                    canvas.height = window.innerHeight;
-                };
+                const resize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; };
                 resize();
-
                 const symbols = '01';
                 const fontSize = 14;
                 const columns = canvas.width / fontSize;
                 const drops = [];
-
-                for (let i = 0; i < columns; i++) {
-                    drops[i] = 1;
-                }
-
+                for (let i = 0; i < columns; i++) drops[i] = 1;
                 const draw = () => {
-                    ctx.fillStyle = 'rgba(15, 23, 42, 0.1)'; 
-                    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-                    ctx.fillStyle = '#0f0'; 
-                    ctx.font = `${fontSize}px monospace`;
-
+                    ctx.fillStyle = 'rgba(15, 23, 42, 0.1)'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    ctx.fillStyle = '#0f0'; ctx.font = `${fontSize}px monospace`;
                     for (let i = 0; i < drops.length; i++) {
                         const text = symbols.charAt(Math.floor(Math.random() * symbols.length));
                         ctx.fillText(text, i * fontSize, drops[i] * fontSize);
-
-                        if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
-                            drops[i] = 0;
-                        }
+                        if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
                         drops[i]++;
                     }
                 };
-
                 const interval = setInterval(draw, 33);
                 window.addEventListener('resize', resize);
-
-                return () => {
-                    clearInterval(interval);
-                    window.removeEventListener('resize', resize);
-                };
+                return () => { clearInterval(interval); window.removeEventListener('resize', resize); };
             }, []);
-
             return <canvas ref={canvasRef} className="fixed inset-0 z-0 pointer-events-none opacity-30" />;
         };
 
-        // --- Main App Component ---
+        const ChefModal = ({ isOpen, onClose }) => {
+            const [topic, setTopic] = useState('');
+            const [result, setResult] = useState('');
+            const [loading, setLoading] = useState(false);
+            const [userApiKey, setUserApiKey] = useState('');
+            const [error, setError] = useState('');
+
+            if (!isOpen) return null;
+
+            const handleAnalyze = async () => {
+                if (!topic) return;
+                setLoading(true); setError(''); setResult('');
+                const keyToUse = userApiKey || DEFAULT_API_KEY;
+                if (!keyToUse) { setError('請輸入 Gemini API Key 以進行模擬。'); setLoading(false); return; }
+                const prompt = `扮演一位專業的產業分析師（Role: AI Chef）。請針對主題「${topic}」進行深度結構分析。請產出一個簡報大綱，格式要求：1. 使用 Markdown 格式。2. 包含三個主要章節。3. 每個章節列出 3 個關鍵數據或論點 (Bullet points)。4. 語氣專業、精簡，直接列出重點，不要有開場白。`;
+                try {
+                    const response = await fetch(
+                        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${keyToUse}`,
+                        { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }) }
+                    );
+                    const data = await response.json();
+                    if (data.error) throw new Error(data.error.message || 'API Error');
+                    const generatedText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+                    setResult(generatedText || '無法生成內容，請稍後再試。');
+                } catch (err) { console.error(err); setError('生成失敗：' + err.message + ' (請檢查 API Key 是否正確)'); } finally { setLoading(false); }
+            };
+
+            return (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={onClose}></div>
+                    <div className="relative bg-slate-800 border border-purple-500/50 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl animate-fade-in-down flex flex-col">
+                        <div className="p-6 border-b border-white/10 flex justify-between items-center bg-slate-900/50">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 bg-purple-500/20 rounded-lg"><Icons.ChefHat className="w-6 h-6 text-purple-400" /></div>
+                                <div><h2 className="text-xl font-bold text-white">AI 廚師模擬器</h2><p className="text-xs text-purple-300">Powered by Gemini 2.5 Flash</p></div>
+                            </div>
+                            <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors"><Icons.X className="w-6 h-6" /></button>
+                        </div>
+                        <div className="p-6 space-y-4 flex-grow">
+                            <div className="space-y-2"><label className="text-sm text-slate-300 font-medium">1. 輸入研究主題 (Ingredients)</label><input type="text" value={topic} onChange={(e) => setTopic(e.target.value)} placeholder="例如：2025 AI 醫療趨勢、台積電庫存分析..." className="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-white placeholder-slate-500 focus:outline-none focus:border-purple-500 transition-colors" /></div>
+                            {!DEFAULT_API_KEY && (<div className="space-y-2"><label className="text-sm text-slate-300 font-medium">2. Gemini API Key (Required)</label><input type="password" value={userApiKey} onChange={(e) => setUserApiKey(e.target.value)} placeholder="Paste your Gemini API Key here" className="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-white placeholder-slate-500 focus:outline-none focus:border-purple-500 transition-colors" /><p className="text-xs text-slate-500">此 Key 僅用於本次模擬，不會被儲存。</p></div>)}
+                            <button onClick={handleAnalyze} disabled={loading || !topic} className={`w-full py-3 rounded-lg font-bold flex items-center justify-center gap-2 transition-all ${loading || !topic ? 'bg-slate-700 text-slate-500 cursor-not-allowed' : 'bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white shadow-lg hover:shadow-purple-500/25'}`}>{loading ? <><Icons.Sparkles className="w-5 h-5 animate-spin" />廚師料理中...</> : <><Icons.Bot className="w-5 h-5" />開始結構分析</>}</button>
+                            {error && <div className="p-3 bg-red-900/30 border border-red-500/50 rounded-lg text-red-200 text-sm">{error}</div>}
+                            {result && <div className="mt-6 space-y-2 animate-fade-in-down"><label className="text-sm text-slate-300 font-medium">3. 廚師分析報告 (Output)</label><div className="bg-slate-900/80 border border-purple-500/30 rounded-xl p-4 text-slate-200 text-sm leading-relaxed max-h-60 overflow-y-auto markdown-body" dangerouslySetInnerHTML={{ __html: marked.parse(result) }}></div></div>}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
         const WorkflowApp = () => {
             const [activeStep, setActiveStep] = useState(null);
+            const [isChefModalOpen, setIsChefModalOpen] = useState(false);
 
             const steps = [
                 {
@@ -128,17 +166,10 @@
                     tool: "Perplexity & Gemini",
                     color: "bg-teal-900/60 text-teal-200 border-teal-500",
                     badge: "Hunter Mode",
+                    hitl: "關鍵決策：篩選權威來源",
                     paths: [
-                        {
-                            name: "獵人 1：Perplexity 廣度獵捕",
-                            desc: "輸入問題追問權威來源，過濾雜訊，導出 PDF。",
-                            icon: <Icons.Globe className="w-4 h-4 text-teal-400" />
-                        },
-                        {
-                            name: "獵人 2：Gemini 深度研究",
-                            desc: "運用 Deep Research 進行專題挖掘，獲取深層洞察。",
-                            icon: <Icons.Sparkles className="w-4 h-4 text-purple-400" />
-                        }
+                        { name: "獵人 1：Perplexity 廣度獵捕", desc: "輸入問題追問權威來源，過濾雜訊，導出 PDF。", icon: <Icons.Globe className="w-4 h-4 text-teal-400" /> },
+                        { name: "獵人 2：Gemini 深度研究", desc: "運用 Deep Research 進行專題挖掘，獲取深層洞察。", icon: <Icons.Sparkles className="w-4 h-4 text-purple-400" /> }
                     ]
                 },
                 {
@@ -151,17 +182,11 @@
                     demoUrl: "https://docs.google.com/presentation/d/1bwFOl3G_BSvatDErgaYkfDvrMWca22KlMdwHf7dSe0E/edit?usp=sharing",
                     color: "bg-purple-900/60 text-purple-200 border-purple-500",
                     badge: "Chef Mode",
+                    hitl: "關鍵動作：上傳並驗證資料",
+                    hasAction: true,
                     paths: [
-                        {
-                            name: "細項 1：交叉比對",
-                            desc: "比對不同來源的數據，識別矛盾點與資訊落差，確保引用權威與準確。",
-                            icon: <Icons.ArrowLeftRight className="w-4 h-4 text-purple-400" />
-                        },
-                        {
-                            name: "細項 2：分析與結論",
-                            desc: "整合驗證後的資訊，提煉關鍵洞察 (Insights)，生成具備邏輯的簡報大綱。",
-                            icon: <Icons.FileText className="w-4 h-4 text-purple-400" />
-                        }
+                        { name: "細項 1：交叉比對", desc: "比對不同來源的數據，識別矛盾點與資訊落差，確保引用權威與準確。", icon: <Icons.ArrowLeftRight className="w-4 h-4 text-purple-400" /> },
+                        { name: "細項 2：分析與結論", desc: "整合驗證後的資訊，提煉關鍵洞察 (Insights)，生成具備邏輯的簡報大綱。", icon: <Icons.FileText className="w-4 h-4 text-purple-400" /> }
                     ]
                 },
                 {
@@ -172,17 +197,10 @@
                     tool: "Dual Strategy",
                     color: "bg-gradient-to-r from-pink-900/60 to-rose-900/60 text-rose-200 border-rose-500",
                     badge: "簡報生成",
+                    hitl: "關鍵決策：選擇生成策略",
                     paths: [
-                        {
-                            name: "途徑 1：Gemini 3.0 Canvas 流",
-                            desc: "Gemini 3.0 ➔ Canvas 生成簡報 ➔ 匯出 PPTx",
-                            icon: <Icons.Zap className="w-4 h-4 text-yellow-400" />
-                        },
-                        {
-                            name: "途徑 2：NotebookLM 轉檔流",
-                            desc: "NotebookLM 生成 PDF ➔ Canva/PPT 轉檔 ➔ 匯出 PPTx",
-                            icon: <Icons.Layers className="w-4 h-4 text-blue-400" />
-                        }
+                        { name: "途徑 1：Gemini 3.0 Canvas 流", desc: "Gemini 3.0 ➔ Canvas 生成簡報 ➔ 匯出 PPTx", icon: <Icons.Zap className="w-4 h-4 text-yellow-400" /> },
+                        { name: "途徑 2：NotebookLM 轉檔流", desc: "NotebookLM 生成 PDF ➔ Canva/PPT 轉檔 ➔ 匯出 PPTx", icon: <Icons.Layers className="w-4 h-4 text-blue-400" /> }
                     ]
                 },
                 {
@@ -192,8 +210,10 @@
                     icon: <Icons.PenTool className="w-6 h-6" />,
                     tool: "Nano Banana Pro",
                     url: "https://slides.google.com/",
+                    editUrl: "https://kevinchaiimagetowordv2.netlify.app/",
                     color: "bg-yellow-900/60 text-yellow-200 border-yellow-500",
-                    badge: "美化重製"
+                    badge: "美化重製",
+                    hitl: "關鍵動作：美感審核與修飾"
                 },
                 {
                     id: 5,
@@ -202,6 +222,7 @@
                     icon: <Icons.Share2 className="w-6 h-6" />,
                     tool: "Google Slides",
                     url: "https://slides.google.com/",
+                    editUrl: "https://kevinchaiimagetowordv2.netlify.app/",
                     color: "bg-yellow-900/60 text-yellow-200 border-yellow-500",
                     badge: "成果發布"
                 }
@@ -210,9 +231,8 @@
             return (
                 <div className="min-h-screen font-sans text-slate-200 p-4 md:p-8 relative overflow-hidden">
                     <DigitalRain />
-                    
+                    <ChefModal isOpen={isChefModalOpen} onClose={() => setIsChefModalOpen(false)} />
                     <div className="relative z-10">
-                        {/* Header Section */}
                         <header className="max-w-4xl mx-auto text-center mb-12 animate-fade-in-down">
                             <div className="inline-flex items-center justify-center p-2 bg-slate-800/80 rounded-full shadow-sm mb-4 border border-slate-700 backdrop-blur-sm">
                                 <span className="bg-gradient-to-r from-teal-500 to-purple-600 text-white text-xs font-bold px-3 py-1 rounded-full mr-2">Power User Workflow</span>
@@ -221,52 +241,51 @@
                             <h1 className="text-3xl md:text-5xl font-extrabold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-teal-400 via-blue-500 to-purple-500">
                                 Perplexity + Gemini 黃金組合
                             </h1>
-                            <p className="text-lg text-slate-400 max-w-2xl mx-auto leading-relaxed">
+                            <p className="text-lg text-slate-400 max-w-2xl mx-auto leading-relaxed mb-8">
                                 從獵人搜集、廚師料理，到 <span className="font-bold text-rose-400">雙軌生成與 Nano 精修</span>，打造最完整的 AI 工作流。
                             </p>
+                            
+                            {/* 新增的核心價值連結按鈕 */}
+                            <div className="flex justify-center">
+                                <a 
+                                    href="https://docs.google.com/document/d/1EpMep6zmxs3r21WmuVoG6_rnthqYy3P6gPx4uVuXsB8/edit?usp=sharing" 
+                                    target="_blank" 
+                                    rel="noopener noreferrer" 
+                                    className="group relative inline-flex items-center gap-3 px-8 py-3 bg-slate-900/50 hover:bg-slate-800 border border-slate-700 hover:border-blue-500/50 rounded-full transition-all duration-300 hover:shadow-[0_0_20px_rgba(59,130,246,0.2)] hover:-translate-y-1"
+                                >
+                                    <span className="absolute inset-0 rounded-full bg-gradient-to-r from-blue-500/10 to-purple-500/10 opacity-0 group-hover:opacity-100 transition-opacity"></span>
+                                    <Icons.BookOpen className="w-5 h-5 text-blue-400 group-hover:scale-110 transition-transform duration-300" />
+                                    <span className="text-base font-bold text-slate-200 group-hover:text-white tracking-wide">核心價值</span>
+                                    <Icons.ExternalLink className="w-4 h-4 text-slate-500 group-hover:text-blue-300 transition-colors" />
+                                </a>
+                            </div>
                         </header>
-
-                        {/* Main Workflow Visualization */}
                         <main className="max-w-3xl mx-auto relative">
-                            {/* Vertical Connecting Line */}
                             <div className="absolute left-8 md:left-1/2 top-4 bottom-4 w-1 bg-slate-700 transform -translate-x-1/2 hidden md:block z-0"></div>
                             <div className="absolute left-6 top-4 bottom-4 w-1 bg-slate-700 md:hidden z-0"></div>
-
                             <div className="space-y-8 relative z-10">
                                 {steps.map((step, index) => {
                                     const isEven = index % 2 === 0;
                                     const isActive = activeStep === step.id;
-
                                     return (
-                                        <div 
-                                            key={step.id}
-                                            className={`flex flex-col md:flex-row items-center group ${isEven ? 'md:flex-row-reverse' : ''}`}
-                                            onMouseEnter={() => setActiveStep(step.id)}
-                                            onMouseLeave={() => setActiveStep(null)}
-                                        >
-                                            {/* Content Card */}
+                                        <div key={step.id} className={`flex flex-col md:flex-row items-center group ${isEven ? 'md:flex-row-reverse' : ''}`} onMouseEnter={() => setActiveStep(step.id)} onMouseLeave={() => setActiveStep(null)}>
                                             <div className={`w-full md:w-5/12 pl-12 md:pl-0 ${isEven ? 'md:pl-8' : 'md:pr-8'}`}>
-                                                <div 
-                                                    className={`
-                                                        relative p-6 rounded-2xl shadow-md border-l-4 transition-all duration-300 transform cursor-default backdrop-blur-md flex flex-col
-                                                        ${step.color}
-                                                        ${isActive ? 'scale-105 shadow-xl -translate-y-1 bg-opacity-80' : 'hover:shadow-lg bg-opacity-60'}
-                                                    `}
-                                                >
+                                                <div className={`relative p-6 rounded-2xl shadow-md border-l-4 transition-all duration-300 transform cursor-default backdrop-blur-md flex flex-col ${step.color} ${isActive ? 'scale-105 shadow-xl -translate-y-1 bg-opacity-80' : 'hover:shadow-lg bg-opacity-60'}`}>
                                                     <div className="flex justify-between items-start mb-3">
-                                                        <span className="inline-block px-2 py-1 bg-slate-800/60 rounded text-xs font-bold tracking-wider backdrop-blur-sm">
-                                                            {step.badge}
-                                                        </span>
+                                                        <span className="inline-block px-2 py-1 bg-slate-800/60 rounded text-xs font-bold tracking-wider backdrop-blur-sm">{step.badge}</span>
                                                         <span className="text-xs font-semibold opacity-70">Step 0{step.id}</span>
                                                     </div>
-                                                    <h3 className="text-xl font-bold mb-2 text-slate-100 flex items-center gap-2">
-                                                        {step.title}
-                                                    </h3>
-                                                    <p className="text-sm text-slate-300 leading-relaxed mb-4">
-                                                        {step.description}
-                                                    </p>
+                                                    <h3 className="text-xl font-bold mb-2 text-slate-100 flex items-center gap-2">{step.title}</h3>
+                                                    <p className="text-sm text-slate-300 leading-relaxed mb-4">{step.description}</p>
+                                                    
+                                                    {step.hitl && (
+                                                        <div className="mb-4 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-200 text-xs font-bold animate-pulse">
+                                                            <Icons.UserCog className="w-4 h-4" />
+                                                            <span>{step.hitl}</span>
+                                                            <span className="ml-1 px-1 bg-amber-500/20 rounded text-[10px]">HITL</span>
+                                                        </div>
+                                                    )}
 
-                                                    {/* Paths for Step 1, Step 2 & Step 3 */}
                                                     {step.paths && (
                                                         <div className="space-y-3 mt-2 mb-4">
                                                             {step.paths.map((path, pIdx) => (
@@ -275,106 +294,49 @@
                                                                         {path.icon}
                                                                         <span className="font-bold text-sm text-white">{path.name}</span>
                                                                     </div>
-                                                                    <div className="flex items-center gap-2 text-xs text-slate-400 pl-6">
-                                                                        <span>{path.desc}</span>
-                                                                    </div>
+                                                                    <div className="flex items-center gap-2 text-xs text-slate-400 pl-6"><span>{path.desc}</span></div>
                                                                 </div>
                                                             ))}
-                                                            <div className="flex justify-center -mb-2 opacity-50">
-                                                                <Icons.ArrowRight className="w-4 h-4 text-slate-400 rotate-90" />
-                                                            </div>
+                                                            <div className="flex justify-center -mb-2 opacity-50"><Icons.ArrowRight className="w-4 h-4 text-slate-400 rotate-90" /></div>
                                                         </div>
                                                     )}
-                                                    
-                                                    {/* Buttons */}
                                                     <div className="mt-auto pt-2 flex flex-wrap justify-end gap-2">
-                                                        {step.demoUrl && (
-                                                            <a 
-                                                                href={step.demoUrl}
-                                                                target="_blank"
-                                                                rel="noopener noreferrer"
-                                                                className="inline-flex items-center px-3 py-2 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-xs font-bold uppercase tracking-wider transition-all duration-200 hover:scale-105 active:scale-95 text-emerald-200"
-                                                                onClick={(e) => e.stopPropagation()}
-                                                            >
-                                                                查看說明
-                                                                <Icons.BookOpen className="ml-2 w-3 h-3" />
-                                                            </a>
+                                                        {step.hasAction && (
+                                                            <button onClick={(e) => { e.stopPropagation(); setIsChefModalOpen(true); }} className="inline-flex items-center px-3 py-2 rounded-lg bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/40 text-xs font-bold uppercase tracking-wider transition-all duration-200 hover:scale-105 active:scale-95 text-purple-200 shadow-[0_0_15px_rgba(168,85,247,0.3)] animate-pulse">試用 AI 廚師 ✨<Icons.Bot className="ml-2 w-3 h-3" /></button>
                                                         )}
-
+                                                        {step.demoUrl && (
+                                                            <a href={step.demoUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center px-3 py-2 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-xs font-bold uppercase tracking-wider transition-all duration-200 hover:scale-105 active:scale-95 text-emerald-200" onClick={(e) => e.stopPropagation()}>查看說明<Icons.BookOpen className="ml-2 w-3 h-3" /></a>
+                                                        )}
+                                                        {step.editUrl && (
+                                                            <a href={step.editUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center px-3 py-2 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-xs font-bold uppercase tracking-wider transition-all duration-200 hover:scale-105 active:scale-95 text-amber-200" onClick={(e) => e.stopPropagation()}>文字修改<Icons.PenTool className="ml-2 w-3 h-3" /></a>
+                                                        )}
                                                         {step.url && (
-                                                            <a 
-                                                                href={step.url}
-                                                                target="_blank"
-                                                                rel="noopener noreferrer"
-                                                                className="inline-flex items-center px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 border border-white/20 text-xs font-bold uppercase tracking-wider transition-all duration-200 hover:scale-105 active:scale-95"
-                                                                onClick={(e) => e.stopPropagation()}
-                                                            >
-                                                                Open Tool
-                                                                <Icons.ExternalLink className="ml-2 w-3 h-3" />
-                                                            </a>
+                                                            <a href={step.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 border border-white/20 text-xs font-bold uppercase tracking-wider transition-all duration-200 hover:scale-105 active:scale-95" onClick={(e) => e.stopPropagation()}>Open Tool<Icons.ExternalLink className="ml-2 w-3 h-3" /></a>
                                                         )}
                                                     </div>
                                                 </div>
                                             </div>
-
-                                            {/* Center Icon Node */}
                                             <div className="absolute left-6 md:left-1/2 transform -translate-x-1/2 flex flex-col items-center justify-center">
-                                                <div 
-                                                    className={`
-                                                        w-12 h-12 rounded-full border-4 border-slate-800 shadow-lg flex items-center justify-center transition-all duration-500
-                                                        ${isActive ? 'bg-slate-700 text-white scale-110' : 'bg-slate-900 text-slate-400'}
-                                                    `}
-                                                >
-                                                    {step.icon}
-                                                </div>
+                                                <div className={`w-12 h-12 rounded-full border-4 border-slate-800 shadow-lg flex items-center justify-center transition-all duration-500 ${isActive ? 'bg-slate-700 text-white scale-110' : 'bg-slate-900 text-slate-400'}`}>{step.icon}</div>
                                             </div>
-
-                                            {/* Spacer */}
                                             <div className="hidden md:block w-5/12"></div>
                                         </div>
                                     );
                                 })}
                             </div>
-
-                            {/* End Node */}
                             <div className="flex justify-center mt-12 relative z-10">
                                 <div className="flex flex-col items-center">
-                                    <div className="w-16 h-16 bg-green-600 rounded-full flex items-center justify-center text-white shadow-xl animate-bounce">
-                                        <Icons.CheckCircle2 size={32} />
-                                    </div>
+                                    <div className="w-16 h-16 bg-green-600 rounded-full flex items-center justify-center text-white shadow-xl animate-bounce"><Icons.CheckCircle2 size={32} /></div>
                                     <span className="mt-3 font-bold text-green-400 bg-slate-800/80 px-4 py-1 rounded-full backdrop-blur-sm">黃金流程完成</span>
                                 </div>
                             </div>
                         </main>
-
-                        {/* Benefits Summary Grid */}
                         <section className="max-w-6xl mx-auto mt-20 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                            <BenefitCard 
-                                title="雙模組獵人 (搜集)" 
-                                subtitle="Perplexity & Gemini"
-                                features={["獵人1：Perplexity 廣搜", "獵人2：Gemini 深研", "全方位素材獲取"]}
-                                color="bg-teal-900/40 border-teal-700 text-teal-300"
-                            />
-                            <BenefitCard 
-                                title="NotebookLM (廚師)" 
-                                subtitle="深度料理"
-                                features={["建立無幻覺知識庫", "交叉比對分析", "產出結構大綱"]}
-                                color="bg-purple-900/40 border-purple-700 text-purple-300"
-                            />
-                            <BenefitCard 
-                                title="雙軌生成 (戰術)" 
-                                subtitle="殊途同歸"
-                                features={["Gemini 3.0 Canvas 流", "NotebookLM 轉檔流", "皆匯出為 PPTx"]}
-                                color="bg-rose-900/40 border-rose-700 text-rose-300"
-                            />
-                            <BenefitCard 
-                                title="Nano Banana Pro (美化)" 
-                                subtitle="完美成果"
-                                features={["Google Slides 整合", "重新製圖", "專業級修飾"]}
-                                color="bg-yellow-900/40 border-yellow-700 text-yellow-300"
-                            />
+                            <BenefitCard title="雙模組獵人 (搜集)" subtitle="Perplexity & Gemini" features={["獵人1：Perplexity 廣搜", "獵人2：Gemini 深研", "全方位素材獲取"]} color="bg-teal-900/40 border-teal-700 text-teal-300" />
+                            <BenefitCard title="NotebookLM (廚師)" subtitle="深度料理" features={["建立無幻覺知識庫", "交叉比對分析", "產出結構大綱"]} color="bg-purple-900/40 border-purple-700 text-purple-300" />
+                            <BenefitCard title="雙軌生成 (戰術)" subtitle="殊途同歸" features={["Gemini 3.0 Canvas 流", "NotebookLM 轉檔流", "皆匯出為 PPTx"]} color="bg-rose-900/40 border-rose-700 text-rose-300" />
+                            <BenefitCard title="Nano Banana Pro (美化)" subtitle="完美成果" features={["Google Slides 整合", "重新製圖", "專業級修飾"]} color="bg-yellow-900/40 border-yellow-700 text-yellow-300" />
                         </section>
-
                         <footer className="mt-16 text-center text-slate-500 text-sm pb-8">
                             <p>© 2025 Power User Workflow Visualization</p>
                             <p className="mt-2 font-medium text-slate-400">製作人: Masky Wang</p>
@@ -383,22 +345,17 @@
                 </div>
             );
         };
-
         const BenefitCard = ({ title, subtitle, features, color }) => (
             <div className={`p-6 rounded-xl border ${color} hover:shadow-md transition-shadow backdrop-blur-sm bg-opacity-40`}>
                 <h4 className="text-lg font-bold mb-1 text-slate-200">{title}</h4>
                 <p className="text-sm opacity-80 mb-4 uppercase tracking-wide font-semibold">{subtitle}</p>
                 <ul className="space-y-2">
                     {features.map((item, idx) => (
-                        <li key={idx} className="flex items-center text-sm">
-                            <div className="w-1.5 h-1.5 rounded-full bg-current mr-2 opacity-60"></div>
-                            {item}
-                        </li>
+                        <li key={idx} className="flex items-center text-sm"><div className="w-1.5 h-1.5 rounded-full bg-current mr-2 opacity-60"></div>{item}</li>
                     ))}
                 </ul>
             </div>
         );
-
         const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(<WorkflowApp />);
     </script>
