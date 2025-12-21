@@ -195,6 +195,7 @@
                 content: '',
                 audience: ''
             });
+            const [useSubjectAsRole, setUseSubjectAsRole] = useState(false);
             const [copied, setCopied] = useState(false);
 
             useEffect(() => {
@@ -205,7 +206,11 @@
                 const { subject, source, style, content, audience } = inputs;
                 if (!subject && !source && !style && !content && !audience) return "請填寫左側欄位以產生 Prompt...";
                 
-                return `角色設定：你是一位專業的簡報設計師與溝通專家。
+                const roleDescription = useSubjectAsRole && subject 
+                    ? `角色設定：你是${subject}。` 
+                    : `角色設定：你是一位專業的簡報設計師與溝通專家。`;
+
+                return `${roleDescription}
 
 【簡報基本資訊】
 • 簡報主題（主角）：${subject || '[請輸入主題]'}
@@ -226,7 +231,7 @@ ${content || '[請輸入詳細內容]'}
 4. 針對該頁的演講備忘錄 (Speaker Notes)
 
 請使用 Markdown 格式輸出。`;
-            }, [inputs]);
+            }, [inputs, useSubjectAsRole]);
 
             const handleChange = (field, value) => {
                 setInputs(prev => ({ ...prev, [field]: value }));
@@ -260,7 +265,18 @@ ${content || '[請輸入詳細內容]'}
 
                             <div className="space-y-3">
                                 <div>
-                                    <label className="text-xs font-bold text-slate-400 uppercase mb-1 block">簡報主角 / 主題</label>
+                                    <div className="flex justify-between items-center mb-1">
+                                        <label className="text-xs font-bold text-slate-400 uppercase">簡報主角 / 主題</label>
+                                        <label className="flex items-center gap-2 cursor-pointer group select-none">
+                                            <input 
+                                                type="checkbox" 
+                                                checked={useSubjectAsRole} 
+                                                onChange={(e) => setUseSubjectAsRole(e.target.checked)}
+                                                className="w-3 h-3 rounded border-slate-600 text-rose-500 focus:ring-rose-500 bg-slate-800 accent-rose-500"
+                                            />
+                                            <span className="text-[10px] text-slate-500 group-hover:text-rose-300 transition-colors">角色設定與主角一致</span>
+                                        </label>
+                                    </div>
                                     <input type="text" value={inputs.subject} onChange={e => handleChange('subject', e.target.value)} placeholder="例如：2025 Q3 財務報告、新產品發表..." className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:border-rose-500 focus:outline-none transition-colors" />
                                 </div>
                                 <div>
