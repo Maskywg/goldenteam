@@ -394,6 +394,7 @@ ${content || '[請輸入詳細內容]'}
                     color: "bg-gradient-to-r from-pink-900/60 to-rose-900/60 text-rose-200 border-rose-500",
                     badge: "簡報生成",
                     hitl: "關鍵決策：選擇生成策略",
+                    roleSelector: "請幫我找尋適合介紹這個議題的漫畫人物，電視電影主角或者是歷史名人 或者是任何你想得到的角色。",
                     promptGenerator: "開啟簡報 Prompt 生成器",
                     paths: [
                         { name: "途徑 1：Gemini 3.0 Canvas 流", desc: "Gemini 3.0 ➔ Canvas 生成簡報 ➔ 匯出 PPTx", icon: <Icons.Zap className="w-4 h-4 text-yellow-400" /> },
@@ -583,6 +584,29 @@ ${content || '[請輸入詳細內容]'}
                                                                 </div>
                                                             ))}
                                                             <div className="flex justify-center -mb-2 opacity-50"><Icons.ArrowRight className="w-4 h-4 text-slate-400 rotate-90" /></div>
+                                                        </div>
+                                                    )}
+
+                                                    {/* 新增的 Role Selector Prompt */}
+                                                    {step.roleSelector && (
+                                                        <div className="mt-2 mb-2 bg-indigo-900/30 p-3 rounded-lg border border-indigo-500/30 relative group/prompt">
+                                                            <div className="flex items-center gap-2 mb-1">
+                                                                <Icons.UserCog className="w-3 h-3 text-indigo-400" />
+                                                                <span className="text-[10px] text-indigo-300 font-bold uppercase">角色靈感 Prompt</span>
+                                                            </div>
+                                                            <div className="text-xs text-slate-300 font-mono leading-relaxed pr-6">{step.roleSelector}</div>
+                                                            <button 
+                                                                onClick={(e) => { 
+                                                                    e.stopPropagation(); 
+                                                                    copyToClipboard(step.roleSelector, () => {
+                                                                        // optional feedback
+                                                                    });
+                                                                }}
+                                                                className="absolute top-2 right-2 text-indigo-400/60 hover:text-indigo-200 transition-colors p-1 rounded hover:bg-indigo-500/20"
+                                                                title="複製 Prompt"
+                                                            >
+                                                                <Icons.Copy className="w-3 h-3" />
+                                                            </button>
                                                         </div>
                                                     )}
 
