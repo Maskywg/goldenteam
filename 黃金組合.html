@@ -40,45 +40,27 @@
         const DEFAULT_API_KEY = ""; 
 
         // --- Helper Function for Clipboard Copy ---
-        // Fix for "NotAllowedError: Failed to execute 'writeText' on 'Clipboard'"
         const copyToClipboard = (text, onSuccess) => {
-            // Create a temporary textarea element
             const textArea = document.createElement("textarea");
             textArea.value = text;
-            
-            // Ensure it's not visible but part of the DOM
             textArea.style.position = "fixed";
             textArea.style.left = "-9999px";
             textArea.style.top = "0";
-            
             document.body.appendChild(textArea);
             textArea.focus();
             textArea.select();
-
             try {
-                // Execute the deprecated but widely supported copy command
                 const successful = document.execCommand('copy');
-                if (successful && onSuccess) {
-                    onSuccess();
-                }
+                if (successful && onSuccess) onSuccess();
             } catch (err) {
                 console.error('Fallback: Oops, unable to copy', err);
             }
-
             document.body.removeChild(textArea);
         };
 
         // --- Icon Components (SVG Definitions) ---
         const IconBase = ({ children, className }) => (
-            <svg 
-                xmlns="http://www.w3.org/2000/svg" 
-                width="24" height="24" viewBox="0 0 24 24" 
-                fill="none" stroke="currentColor" strokeWidth="2" 
-                strokeLinecap="round" strokeLinejoin="round" 
-                className={className}
-            >
-                {children}
-            </svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>{children}</svg>
         );
 
         const Icons = {
@@ -96,7 +78,7 @@
             CheckCircle2: (props) => <IconBase {...props}><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></IconBase>,
             ExternalLink: (props) => <IconBase {...props}><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" x2="21" y1="14" y2="3"/></IconBase>,
             BookOpen: (props) => <IconBase {...props}><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></IconBase>,
-            Sparkles: (props) => <IconBase {...props}><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L12 3Z"/></IconBase>,
+            Sparkles: (props) => <IconBase {...props}><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></IconBase>,
             FileText: (props) => <IconBase {...props}><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/><line x1="10" x2="8" y1="9" y2="9"/></IconBase>,
             Bot: (props) => <IconBase {...props}><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></IconBase>,
             X: (props) => <IconBase {...props}><path d="M18 6 6 18"/><path d="m6 6 12 12"/></IconBase>,
@@ -196,6 +178,7 @@
                 audience: ''
             });
             const [useSubjectAsRole, setUseSubjectAsRole] = useState(false);
+            const [outputFormat, setOutputFormat] = useState('markdown'); // 'markdown' or 'yaml'
             const [copied, setCopied] = useState(false);
 
             useEffect(() => {
@@ -210,8 +193,7 @@
                     ? `角色設定：你是${subject}。` 
                     : `角色設定：你是一位專業的簡報設計師與溝通專家。`;
 
-                return `${roleDescription}
-
+                const inputContext = `
 【簡報基本資訊】
 • 簡報主題（主角）：${subject || '[請輸入主題]'}
 • 目標對象：${audience || '[請輸入對象]'}
@@ -220,7 +202,38 @@
 
 【內容要求】
 請根據上述設定，並涵蓋以下重點內容：
-${content || '[請輸入詳細內容]'}
+${content || '[請輸入詳細內容]'}`;
+
+                if (outputFormat === 'yaml') {
+                    return `${roleDescription}
+
+${inputContext}
+
+【任務指令】
+請根據以上資訊，為我生成一份詳細的簡報大綱，並嚴格按照以下 YAML 格式輸出（請直接輸出 YAML 代碼）：
+
+\`\`\`yaml
+presentation:
+  topic: "${subject || '[簡報主題]'}"
+  target_audience: "${audience || '[目標聽眾]'}"
+  total_slides: [預計頁數]
+  slides:
+    - slide_number: [頁碼]
+      title: "[單頁標題]"
+      layout_type: "[建議版型，例如：標題頁、雙欄比較、圖文並茂]"
+      key_points:
+        - "[重點 1]"
+        - "[重點 2]"
+        - "[重點 3]"
+      visual_suggestion: "[建議這頁要放什麼圖片或圖表]"
+      speaker_notes: "[講者講稿/備忘錄，語氣要自然]"
+\`\`\``;
+                }
+
+                // Default Markdown
+                return `${roleDescription}
+
+${inputContext}
 
 【任務指令】
 請根據以上資訊，為我生成一份詳細的簡報架構（Slide Deck Outline）。
@@ -231,7 +244,7 @@ ${content || '[請輸入詳細內容]'}
 4. 針對該頁的演講備忘錄 (Speaker Notes)
 
 請使用 Markdown 格式輸出。`;
-            }, [inputs, useSubjectAsRole]);
+            }, [inputs, useSubjectAsRole, outputFormat]);
 
             const handleChange = (field, value) => {
                 setInputs(prev => ({ ...prev, [field]: value }));
@@ -302,7 +315,23 @@ ${content || '[請輸入詳細內容]'}
                         <div className="w-full md:w-1/2 p-6 bg-slate-900/50 flex flex-col relative">
                             <button onClick={onClose} className="hidden md:block absolute top-4 right-4 text-slate-400 hover:text-white transition-colors"><Icons.X className="w-6 h-6" /></button>
                             
-                            <h3 className="text-sm font-bold text-slate-300 mb-4 flex items-center gap-2"><Icons.Sparkles className="w-4 h-4 text-yellow-400" />Generated Prompt Preview</h3>
+                            <div className="flex items-center justify-between mb-4">
+                                <h3 className="text-sm font-bold text-slate-300 flex items-center gap-2"><Icons.Sparkles className="w-4 h-4 text-yellow-400" />Generated Prompt</h3>
+                                <div className="flex bg-slate-800 rounded-lg p-1 border border-slate-700">
+                                    <button 
+                                        onClick={() => setOutputFormat('markdown')}
+                                        className={`px-3 py-1 text-xs font-bold rounded-md transition-all ${outputFormat === 'markdown' ? 'bg-rose-500/20 text-rose-300' : 'text-slate-500 hover:text-slate-300'}`}
+                                    >
+                                        Markdown
+                                    </button>
+                                    <button 
+                                        onClick={() => setOutputFormat('yaml')}
+                                        className={`px-3 py-1 text-xs font-bold rounded-md transition-all ${outputFormat === 'yaml' ? 'bg-rose-500/20 text-rose-300' : 'text-slate-500 hover:text-slate-300'}`}
+                                    >
+                                        YAML
+                                    </button>
+                                </div>
+                            </div>
                             
                             <div className="flex-grow bg-slate-950 border border-slate-800 rounded-xl p-4 text-slate-300 font-mono text-sm leading-relaxed overflow-y-auto whitespace-pre-wrap shadow-inner relative group">
                                 {generatedPrompt}
