@@ -353,6 +353,10 @@ ${inputContext}
             const [activeStep, setActiveStep] = useState(null);
             const [isChefModalOpen, setIsChefModalOpen] = useState(false);
             const [isPromptModalOpen, setIsPromptModalOpen] = useState(false);
+            
+            // Hunter State
+            const [hunterTopic, setHunterTopic] = useState('');
+            const [hunterType, setHunterType] = useState('hot'); // 'hot' or 'timeless'
 
             const steps = [
                 {
@@ -366,6 +370,7 @@ ${inputContext}
                     hitl: "關鍵決策：篩選權威來源",
                     paths: [
                         { 
+                            id: 'perplexity',
                             name: "獵人 1：Perplexity 廣度獵捕", 
                             desc: "輸入問題追問權威來源，過濾雜訊，導出 PDF。",
                             steps: [
@@ -377,6 +382,7 @@ ${inputContext}
                             urlText: "前往 Perplexity"
                         },
                         { 
+                            id: 'gemini',
                             name: "獵人 2：Gemini 深度研究", 
                             desc: "運用 Deep Research 進行專題挖掘，獲取深層洞察。", 
                             icon: <Icons.Sparkles className="w-4 h-4 text-purple-400" />,
@@ -588,6 +594,65 @@ ${inputContext}
                                                                     <div className="pl-6">
                                                                         <div className="text-xs text-slate-400">{path.desc}</div>
                                                                         
+                                                                        {/* Hunter 1 & 2 Dynamic Prompt Section */}
+                                                                        {(path.id === 'perplexity' || path.id === 'gemini') && (
+                                                                            <div className="mt-3 mb-2 bg-slate-900/80 p-3 rounded-lg border border-teal-500/30" onClick={(e) => e.stopPropagation()}>
+                                                                                <div className="mb-2 text-xs font-bold text-teal-400 flex items-center gap-1"><Icons.Sparkles className="w-3 h-3" />研究主題設定</div>
+                                                                                <input 
+                                                                                    type="text" 
+                                                                                    value={hunterTopic}
+                                                                                    onChange={(e) => setHunterTopic(e.target.value)}
+                                                                                    placeholder="輸入您的研究主題..."
+                                                                                    className="w-full bg-slate-800 border border-slate-700 rounded p-2 text-xs text-white mb-3 focus:border-teal-500 focus:outline-none transition-colors"
+                                                                                />
+                                                                                <div className="flex flex-col sm:flex-row gap-3 mb-3">
+                                                                                    <label className="flex items-center gap-2 text-xs text-slate-300 cursor-pointer hover:text-white transition-colors">
+                                                                                        <input 
+                                                                                            type="radio" 
+                                                                                            name="hunterType" 
+                                                                                            value="hot"
+                                                                                            checked={hunterType === 'hot'}
+                                                                                            onChange={(e) => setHunterType(e.target.value)}
+                                                                                            className="accent-teal-500 w-3 h-3 cursor-pointer"
+                                                                                        />
+                                                                                        熱門主題 (近半年)
+                                                                                    </label>
+                                                                                    <label className="flex items-center gap-2 text-xs text-slate-300 cursor-pointer hover:text-white transition-colors">
+                                                                                        <input 
+                                                                                            type="radio" 
+                                                                                            name="hunterType" 
+                                                                                            value="timeless"
+                                                                                            checked={hunterType === 'timeless'}
+                                                                                            onChange={(e) => setHunterType(e.target.value)}
+                                                                                            className="accent-teal-500 w-3 h-3 cursor-pointer"
+                                                                                        />
+                                                                                        縱向性主題 (歷年)
+                                                                                    </label>
+                                                                                </div>
+                                                                                <div className="relative bg-black/40 p-2 rounded border border-white/5 group/prompt">
+                                                                                    <div className="text-xs text-teal-100/90 font-mono leading-relaxed pr-6 break-words">
+                                                                                        {hunterType === 'hot' 
+                                                                                            ? `請幫我搜尋近半年來有關【${hunterTopic || '您的主題'}】主題的有關資料。`
+                                                                                            : `請幫我搜尋歷年來有關【${hunterTopic || '您的主題'}】主題的有關資料。`
+                                                                                        }
+                                                                                    </div>
+                                                                                    <button 
+                                                                                        onClick={(e) => { 
+                                                                                            e.stopPropagation(); 
+                                                                                            const text = hunterType === 'hot' 
+                                                                                                ? `請幫我搜尋近半年來有關【${hunterTopic}】主題的有關資料。`
+                                                                                                : `請幫我搜尋歷年來有關【${hunterTopic}】主題的有關資料。`;
+                                                                                            copyToClipboard(text, () => {});
+                                                                                        }}
+                                                                                        className="absolute top-2 right-2 text-teal-500/60 hover:text-teal-400 transition-colors p-1 rounded hover:bg-teal-500/10"
+                                                                                        title="複製 Prompt"
+                                                                                    >
+                                                                                        <Icons.Copy className="w-3 h-3" />
+                                                                                    </button>
+                                                                                </div>
+                                                                            </div>
+                                                                        )}
+
                                                                         {path.steps && (
                                                                             <div className="mt-2 space-y-1">
                                                                                 <div className="text-[10px] font-bold text-teal-500/80 uppercase tracking-wider mb-1">實際步驟：</div>
