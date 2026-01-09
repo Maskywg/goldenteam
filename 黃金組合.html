@@ -456,6 +456,8 @@ ${inputContext}
                     editUrl: "https://kevinchaiimagetowordv2.netlify.app/",
                     videoUrl: "https://www.youtube.com/watch?v=R_CwAva8bks",
                     videoText: "拿回文字主導",
+                    pdfPptUrl: "https://codia.ai/noteslide",
+                    pdfPptText: "PDF轉可修PPT",
                     color: "bg-yellow-900/60 text-yellow-200 border-yellow-500",
                     badge: "美化重製",
                     hitl: "關鍵動作：美感審核與修飾"
@@ -470,6 +472,8 @@ ${inputContext}
                     editUrl: "https://kevinchaiimagetowordv2.netlify.app/",
                     videoUrl: "https://www.youtube.com/watch?v=R_CwAva8bks",
                     videoText: "拿回文字主導",
+                    pdfPptUrl: "https://codia.ai/noteslide",
+                    pdfPptText: "PDF轉可修PPT",
                     color: "bg-yellow-900/60 text-yellow-200 border-yellow-500",
                     badge: "成果發布"
                 }
@@ -739,6 +743,11 @@ ${inputContext}
                                                         )}
                                                         {step.editUrl && (
                                                             <a href={step.editUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center px-3 py-2 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-xs font-bold uppercase tracking-wider transition-all duration-200 hover:scale-105 active:scale-95 text-amber-200" onClick={(e) => e.stopPropagation()}>文字修改<Icons.PenTool className="ml-2 w-3 h-3" /></a>
+                                                        )}
+                                                        {step.pdfPptUrl && (
+                                                            <a href={step.pdfPptUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center px-3 py-2 rounded-lg bg-orange-500/20 hover:bg-orange-500/30 border border-orange-500/40 text-xs font-bold uppercase tracking-wider transition-all duration-200 hover:scale-105 active:scale-95 text-orange-200" onClick={(e) => e.stopPropagation()}>
+                                                                {step.pdfPptText || "PDF to PPT"} <Icons.FileUp className="ml-2 w-3 h-3" />
+                                                            </a>
                                                         )}
                                                         {step.url && (
                                                             <a href={step.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 border border-white/20 text-xs font-bold uppercase tracking-wider transition-all duration-200 hover:scale-105 active:scale-95" onClick={(e) => e.stopPropagation()}>Open Tool<Icons.ExternalLink className="ml-2 w-3 h-3" /></a>
