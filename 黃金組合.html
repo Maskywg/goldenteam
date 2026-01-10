@@ -458,6 +458,8 @@ ${inputContext}
                     videoText: "拿回文字主導",
                     pdfPptUrl: "https://codia.ai/noteslide",
                     pdfPptText: "PDF轉可修PPT",
+                    nbEditorUrl: "https://notebooklm.10xboost.org/",
+                    nbEditorText: "NotebookLM 簡報編輯器(免費)",
                     color: "bg-yellow-900/60 text-yellow-200 border-yellow-500",
                     badge: "美化重製",
                     hitl: "關鍵動作：美感審核與修飾"
@@ -474,6 +476,8 @@ ${inputContext}
                     videoText: "拿回文字主導",
                     pdfPptUrl: "https://codia.ai/noteslide",
                     pdfPptText: "PDF轉可修PPT",
+                    nbEditorUrl: "https://notebooklm.10xboost.org/",
+                    nbEditorText: "NotebookLM 簡報編輯器(免費)",
                     color: "bg-yellow-900/60 text-yellow-200 border-yellow-500",
                     badge: "成果發布"
                 }
@@ -747,6 +751,11 @@ ${inputContext}
                                                         {step.pdfPptUrl && (
                                                             <a href={step.pdfPptUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center px-3 py-2 rounded-lg bg-orange-500/20 hover:bg-orange-500/30 border border-orange-500/40 text-xs font-bold uppercase tracking-wider transition-all duration-200 hover:scale-105 active:scale-95 text-orange-200" onClick={(e) => e.stopPropagation()}>
                                                                 {step.pdfPptText || "PDF to PPT"} <Icons.FileUp className="ml-2 w-3 h-3" />
+                                                            </a>
+                                                        )}
+                                                        {step.nbEditorUrl && (
+                                                            <a href={step.nbEditorUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center px-3 py-2 rounded-lg bg-indigo-500/20 hover:bg-indigo-500/30 border border-indigo-500/40 text-xs font-bold uppercase tracking-wider transition-all duration-200 hover:scale-105 active:scale-95 text-indigo-200" onClick={(e) => e.stopPropagation()}>
+                                                                {step.nbEditorText} <Icons.Wand2 className="ml-2 w-3 h-3" />
                                                             </a>
                                                         )}
                                                         {step.url && (
