@@ -179,6 +179,7 @@
             });
             const [useSubjectAsRole, setUseSubjectAsRole] = useState(false);
             const [outputFormat, setOutputFormat] = useState('markdown'); // 'markdown' or 'yaml'
+            const [generationMode, setGenerationMode] = useState('enrich'); // 'strict' or 'enrich'
             const [copied, setCopied] = useState(false);
 
             useEffect(() => {
@@ -204,12 +205,21 @@
 請根據上述設定，並涵蓋以下重點內容：
 ${content || '[請輸入詳細內容]'}`;
 
+                let modeInstruction = "";
+                if (generationMode === 'strict') {
+                    modeInstruction = "請嚴格依據我提供的『分析結論』撰寫簡報，不要加入任何外部資訊或原始資料中的額外細節。";
+                } else {
+                    // Default to enrich mode
+                    modeInstruction = "請以我提供的『分析結論』為核心架構，並從附帶的『原始研究資料』中提取數據、案例與細節來豐富簡報內容，若有相反意見請一併列出。";
+                }
+
                 if (outputFormat === 'yaml') {
                     return `${roleDescription}
 
 ${inputContext}
 
 【任務指令】
+${modeInstruction}
 請根據以上資訊，為我生成一份詳細的簡報大綱，並嚴格按照以下 YAML 格式輸出（請直接輸出 YAML 代碼）：
 
 \`\`\`yaml
@@ -236,6 +246,7 @@ presentation:
 ${inputContext}
 
 【任務指令】
+${modeInstruction}
 請根據以上資訊，為我生成一份詳細的簡報架構（Slide Deck Outline）。
 請包含：
 1. 每張投影片的標題 (Slide Title)
@@ -244,7 +255,7 @@ ${inputContext}
 4. 針對該頁的演講備忘錄 (Speaker Notes)
 
 請使用 Markdown 格式輸出。`;
-            }, [inputs, useSubjectAsRole, outputFormat]);
+            }, [inputs, useSubjectAsRole, outputFormat, generationMode]);
 
             const handleChange = (field, value) => {
                 setInputs(prev => ({ ...prev, [field]: value }));
@@ -292,6 +303,41 @@ ${inputContext}
                                     </div>
                                     <input type="text" value={inputs.subject} onChange={e => handleChange('subject', e.target.value)} placeholder="例如：2025 Q3 財務報告、新產品發表..." className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:border-rose-500 focus:outline-none transition-colors" />
                                 </div>
+                                
+                                <div>
+                                    <label className="text-xs font-bold text-slate-400 uppercase mb-2 block">生成模式 (Generation Mode)</label>
+                                    <div className="flex flex-col gap-2">
+                                        <label className={`flex items-center p-2 rounded-lg border cursor-pointer transition-all ${generationMode === 'strict' ? 'bg-rose-500/10 border-rose-500/50' : 'bg-slate-800 border-slate-700 hover:border-slate-500'}`}>
+                                            <input 
+                                                type="radio" 
+                                                name="generationMode"
+                                                value="strict"
+                                                checked={generationMode === 'strict'} 
+                                                onChange={(e) => setGenerationMode(e.target.value)}
+                                                className="w-3 h-3 text-rose-500 focus:ring-rose-500 bg-slate-800 border-slate-600"
+                                            />
+                                            <div className="ml-2">
+                                                <div className={`text-xs font-bold ${generationMode === 'strict' ? 'text-rose-300' : 'text-slate-300'}`}>選項 A：精準收斂 (Strict Mode)</div>
+                                                <div className="text-[10px] text-slate-500 mt-0.5">只依據「分析結論」撰寫，嚴禁加入外部資訊。</div>
+                                            </div>
+                                        </label>
+                                        <label className={`flex items-center p-2 rounded-lg border cursor-pointer transition-all ${generationMode === 'enrich' ? 'bg-rose-500/10 border-rose-500/50' : 'bg-slate-800 border-slate-700 hover:border-slate-500'}`}>
+                                            <input 
+                                                type="radio" 
+                                                name="generationMode"
+                                                value="enrich"
+                                                checked={generationMode === 'enrich'} 
+                                                onChange={(e) => setGenerationMode(e.target.value)}
+                                                className="w-3 h-3 text-rose-500 focus:ring-rose-500 bg-slate-800 border-slate-600"
+                                            />
+                                            <div className="ml-2">
+                                                <div className={`text-xs font-bold ${generationMode === 'enrich' ? 'text-rose-300' : 'text-slate-300'}`}>選項 B：完整佐證 (Enrich Mode)</div>
+                                                <div className="text-[10px] text-slate-500 mt-0.5">以結論為架構，並提取原始資料豐富內容 (預設)。</div>
+                                            </div>
+                                        </label>
+                                    </div>
+                                </div>
+
                                 <div>
                                     <label className="text-xs font-bold text-slate-400 uppercase mb-1 block">簡報對象</label>
                                     <input type="text" value={inputs.audience} onChange={e => handleChange('audience', e.target.value)} placeholder="例如：公司高層、潛在投資人、大學生..." className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:border-rose-500 focus:outline-none transition-colors" />
