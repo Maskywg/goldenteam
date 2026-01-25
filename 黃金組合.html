@@ -87,7 +87,8 @@
             Compass: (props) => <IconBase {...props}><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></IconBase>,
             Copy: (props) => <IconBase {...props}><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></IconBase>,
             Wand2: (props) => <IconBase {...props}><path d="m21.64 3.64-1.28-1.28a1.21 1.21 0 0 0-1.72 0L2.36 18.64a1.21 1.21 0 0 0 0 1.72l1.28 1.28a1.2 1.2 0 0 0 1.72 0L21.64 5.36a1.2 1.2 0 0 0 0-1.72Z"/><path d="m14 7 3 3"/><path d="M5 6v4"/><path d="M19 14v4"/><path d="M10 2v2"/><path d="M7 8H3"/><path d="M21 16h-4"/><path d="M11 3H9"/></IconBase>,
-            Gift: (props) => <IconBase {...props}><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13"/><path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/><path d="M7.5 8a2.5 2.5 0 0 1 0-5A4.8 8 0 0 1 12 8a4.8 8 0 0 1 4.5-5 2.5 2.5 0 0 1 0 5"/></IconBase>
+            Gift: (props) => <IconBase {...props}><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13"/><path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/><path d="M7.5 8a2.5 2.5 0 0 1 0-5A4.8 8 0 0 1 12 8a4.8 8 0 0 1 4.5-5 2.5 2.5 0 0 1 0 5"/></IconBase>,
+            Code: (props) => <IconBase {...props}><polyline points="16 18 22 12 16 6" /><polyline points="8 6 2 12 8 18" /></IconBase>
         };
 
         const DigitalRain = () => {
@@ -481,6 +482,8 @@ ${modeInstruction}
                     hitl: "關鍵決策：選擇生成策略",
                     roleSelector: "請幫我找尋適合介紹這個議題的漫畫人物，電視電影主角或者是歷史名人 或者是任何你想得到的角色。",
                     promptGenerator: "開啟簡報 Prompt 生成器",
+                    colabUrl: "https://colab.research.google.com/drive/1jlQ1JZhBjoSOccJdCuDDBLqLlQuvP_HM?usp=sharing",
+                    colabText: "NotebookLM終極prompt神器",
                     paths: [
                         { name: "途徑 1：Gemini 3.0 Canvas 流", desc: "Gemini 3.0 ➔ Canvas 生成簡報 ➔ 匯出 PPTx", icon: <Icons.Zap className="w-4 h-4 text-yellow-400" /> },
                         { 
@@ -785,6 +788,23 @@ ${modeInstruction}
                                                             <Icons.Wand2 className="w-4 h-4" />
                                                             {step.promptGenerator}
                                                         </button>
+                                                    )}
+
+                                                    {/* 新增的 Colab 按鈕 */}
+                                                    {step.colabUrl && (
+                                                        <>
+                                                            <div className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1 mt-4 text-center">其他NotebookLM使用之prompt</div>
+                                                            <a 
+                                                                href={step.colabUrl}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                className="w-full mb-4 py-2 rounded-lg bg-gradient-to-r from-cyan-600/80 to-blue-600/80 hover:from-cyan-500 hover:to-blue-500 text-white font-bold text-sm shadow-lg border border-white/10 flex items-center justify-center gap-2 transition-all hover:shadow-cyan-500/20"
+                                                                onClick={(e) => e.stopPropagation()}
+                                                            >
+                                                                <Icons.Code className="w-4 h-4" />
+                                                                {step.colabText}
+                                                            </a>
+                                                        </>
                                                     )}
 
                                                     <div className="mt-auto pt-2 flex flex-wrap justify-end gap-2">
