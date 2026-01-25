@@ -88,7 +88,8 @@
             Copy: (props) => <IconBase {...props}><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></IconBase>,
             Wand2: (props) => <IconBase {...props}><path d="m21.64 3.64-1.28-1.28a1.21 1.21 0 0 0-1.72 0L2.36 18.64a1.21 1.21 0 0 0 0 1.72l1.28 1.28a1.2 1.2 0 0 0 1.72 0L21.64 5.36a1.2 1.2 0 0 0 0-1.72Z"/><path d="m14 7 3 3"/><path d="M5 6v4"/><path d="M19 14v4"/><path d="M10 2v2"/><path d="M7 8H3"/><path d="M21 16h-4"/><path d="M11 3H9"/></IconBase>,
             Gift: (props) => <IconBase {...props}><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13"/><path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/><path d="M7.5 8a2.5 2.5 0 0 1 0-5A4.8 8 0 0 1 12 8a4.8 8 0 0 1 4.5-5 2.5 2.5 0 0 1 0 5"/></IconBase>,
-            Code: (props) => <IconBase {...props}><polyline points="16 18 22 12 16 6" /><polyline points="8 6 2 12 8 18" /></IconBase>
+            Code: (props) => <IconBase {...props}><polyline points="16 18 22 12 16 6" /><polyline points="8 6 2 12 8 18" /></IconBase>,
+            Layout: (props) => <IconBase {...props}><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><line x1="3" x2="21" y1="9" y2="9"/><line x1="9" x2="9" y1="21" y2="9"/></IconBase>
         };
 
         const DigitalRain = () => {
@@ -507,6 +508,8 @@ ${modeInstruction}
                     videoText: "拿回文字主導",
                     pdfPptUrl: "https://codia.ai/noteslide",
                     pdfPptText: "PDF轉可修PPT",
+                    deckEditUrl: "https://deckedit.com/zh-Hant",
+                    deckEditText: "DeckEdit 簡報編輯",
                     nbEditorUrl: "https://notebooklm.10xboost.org/",
                     nbEditorText: "NotebookLM 簡報編輯器(免費)",
                     color: "bg-yellow-900/60 text-yellow-200 border-yellow-500",
@@ -525,6 +528,8 @@ ${modeInstruction}
                     videoText: "拿回文字主導",
                     pdfPptUrl: "https://codia.ai/noteslide",
                     pdfPptText: "PDF轉可修PPT",
+                    deckEditUrl: "https://deckedit.com/zh-Hant",
+                    deckEditText: "DeckEdit 簡報編輯",
                     nbEditorUrl: "https://notebooklm.10xboost.org/",
                     nbEditorText: "NotebookLM 簡報編輯器(免費)",
                     color: "bg-yellow-900/60 text-yellow-200 border-yellow-500",
@@ -817,6 +822,11 @@ ${modeInstruction}
                                                         {step.pdfPptUrl && (
                                                             <a href={step.pdfPptUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center px-3 py-2 rounded-lg bg-orange-500/20 hover:bg-orange-500/30 border border-orange-500/40 text-xs font-bold uppercase tracking-wider transition-all duration-200 hover:scale-105 active:scale-95 text-orange-200" onClick={(e) => e.stopPropagation()}>
                                                                 {step.pdfPptText || "PDF to PPT"} <Icons.FileUp className="ml-2 w-3 h-3" />
+                                                            </a>
+                                                        )}
+                                                        {step.deckEditUrl && (
+                                                            <a href={step.deckEditUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center px-3 py-2 rounded-lg bg-sky-500/20 hover:bg-sky-500/30 border border-sky-500/40 text-xs font-bold uppercase tracking-wider transition-all duration-200 hover:scale-105 active:scale-95 text-sky-200" onClick={(e) => e.stopPropagation()}>
+                                                                {step.deckEditText} <Icons.Layout className="ml-2 w-3 h-3" />
                                                             </a>
                                                         )}
                                                         {step.nbEditorUrl && (
