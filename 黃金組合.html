@@ -174,6 +174,7 @@
         const PromptGeneratorModal = ({ isOpen, onClose }) => {
             const [inputs, setInputs] = useState({
                 subject: '',
+                creator: '',
                 source: '',
                 style: '',
                 content: '',
@@ -189,8 +190,8 @@
             }, [isOpen]);
 
             const generatedPrompt = useMemo(() => {
-                const { subject, source, style, content, audience } = inputs;
-                if (!subject && !source && !style && !content && !audience) return "請填寫左側欄位以產生 Prompt...";
+                const { subject, creator, source, style, content, audience } = inputs;
+                if (!subject && !source && !style && !content && !audience && !creator) return "請填寫左側欄位以產生 Prompt...";
                 
                 const roleDescription = useSubjectAsRole && subject 
                     ? `角色設定：你是${subject}。` 
@@ -199,6 +200,7 @@
                 const inputContext = `
 【簡報基本資訊】
 • 簡報主題（主角）：${subject || '[請輸入主題]'}
+• 製作者：${creator || '[請輸入製作者]'}
 • 目標對象：${audience || '[請輸入對象]'}
 • 資料來源：${source || '[請輸入來源]'}
 • 設計風格：${style || '[請輸入風格]'}
@@ -215,6 +217,9 @@ ${content || '[請輸入詳細內容]'}`;
                     modeInstruction = "請以我提供的『分析結論』為核心架構，並從附帶的『原始研究資料』中提取數據、案例與細節來豐富簡報內容，若有相反意見請一併列出。";
                 }
 
+                // 定義頁尾與浮水印指令
+                const footerInstruction = `不要有 Perplexity 浮水印。\n請在每一頁簡報的左下方（NotebookLM浮水印下方）標註「Edited by ${creator || '[製作者]'}」。`;
+
                 if (outputFormat === 'yaml') {
                     return `${roleDescription}
 
@@ -227,6 +232,7 @@ ${modeInstruction}
 \`\`\`yaml
 presentation:
   topic: "${subject || '[簡報主題]'}"
+  creator: "${creator || '[製作者]'}"
   target_audience: "${audience || '[目標聽眾]'}"
   total_slides: [預計頁數]
   slides:
@@ -239,7 +245,9 @@ presentation:
         - "[重點 3]"
       visual_suggestion: "[建議這頁要放什麼圖片或圖表]"
       speaker_notes: "[講者講稿/備忘錄，語氣要自然]"
-\`\`\``;
+\`\`\`
+
+${footerInstruction}`;
                 }
 
                 // Default Markdown
@@ -256,7 +264,9 @@ ${modeInstruction}
 3. 建議的配圖或視覺元素 (Visual Suggestions)
 4. 針對該頁的演講備忘錄 (Speaker Notes)
 
-請使用 Markdown 格式輸出。`;
+請使用 Markdown 格式輸出。
+
+${footerInstruction}`;
             }, [inputs, useSubjectAsRole, outputFormat, generationMode]);
 
             const handleChange = (field, value) => {
@@ -304,6 +314,11 @@ ${modeInstruction}
                                         </label>
                                     </div>
                                     <input type="text" value={inputs.subject} onChange={e => handleChange('subject', e.target.value)} placeholder="例如：2025 Q3 財務報告、新產品發表..." className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:border-rose-500 focus:outline-none transition-colors" />
+                                </div>
+
+                                <div>
+                                    <label className="text-xs font-bold text-slate-400 uppercase mb-1 block">製作者</label>
+                                    <input type="text" value={inputs.creator} onChange={e => handleChange('creator', e.target.value)} placeholder="例如：您的名字、部門名稱..." className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:border-rose-500 focus:outline-none transition-colors" />
                                 </div>
                                 
                                 <div>
