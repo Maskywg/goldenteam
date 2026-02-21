@@ -219,7 +219,7 @@ ${content || '[請輸入詳細內容]'}`;
                 }
 
                 // 定義頁尾與浮水印指令
-                const footerInstruction = `不要有 Perplexity 浮水印。\n請在每一頁簡報的左下方（NotebookLM浮水印下方）標註「Edited by ${creator || '[製作者]'}」。`;
+                const footerInstruction = `不要有 Perplexity 浮水印。\n文字大小不要小於22pt。\n請在每一頁簡報的左下方（NotebookLM浮水印下方）標註「Edited by ${creator || '[製作者]'}」。`;
 
                 if (outputFormat === 'yaml') {
                     return `${roleDescription}
