@@ -450,8 +450,8 @@ ${footerInstruction}`;
                             name: "獵人 2：Gemini 深度研究", 
                             desc: "運用 Deep Research 進行專題挖掘，獲取深層洞察。", 
                             icon: <Icons.Sparkles className="w-4 h-4 text-purple-400" />,
-                            url: "https://gemini.google.com/",
-                            urlText: "前往 Gemini"
+                            url: "https://gemini.google.com/gem/1lJ9xRoDI8c5MA2xgYklfUYEflX4qkNLN?usp=sharing",
+                            urlText: "前往「專業深度研究分析師gem」"
                         },
                         {
                             name: "策略參考：探勘優化指南",
@@ -498,7 +498,10 @@ ${footerInstruction}`;
                     badge: "簡報生成",
                     hitl: "關鍵決策：選擇生成策略",
                     roleSelector: "請幫我找尋適合介紹這個議題的漫畫人物，電視電影主角或者是歷史名人 或者是任何你想得到的角色。",
-                    promptGenerator: "開啟簡報 Prompt 生成器",
+                    comicArtistUrl: "https://gemini.google.com/gem/1v-m5kjytvVz71dJmyc0YAMKsoL45-BoP?usp=sharing",
+                    comicArtistText: "漫畫角色轉化繪師",
+                    comicArtistNote: "💡 請上傳照片後生成漫畫主角，以便上傳到 NotebookLM 當資料來源。",
+                    promptGenerator: "開啟NotebookLM簡報 Prompt 生成器",
                     colabUrl: "https://colab.research.google.com/drive/1jlQ1JZhBjoSOccJdCuDDBLqLlQuvP_HM?usp=sharing",
                     colabText: "NotebookLM終極prompt神器",
                     note: "2026/2/18 開始 NotebookLM 已經可以下載PDF或PPTx兩種檔案，而且還可以在簡報生成後逐一的修改，但只限於新生成的簡報。",
@@ -812,6 +815,27 @@ ${footerInstruction}`;
                                                             >
                                                                 <Icons.Copy className="w-3 h-3" />
                                                             </button>
+                                                        </div>
+                                                    )}
+
+                                                    {/* 漫畫角色轉化繪師按鈕 */}
+                                                    {step.comicArtistUrl && (
+                                                        <div className="mt-4 mb-4">
+                                                            {step.comicArtistNote && (
+                                                                <div className="text-[11px] text-slate-300 mb-1.5 px-2 text-center leading-relaxed">
+                                                                    {step.comicArtistNote}
+                                                                </div>
+                                                            )}
+                                                            <a 
+                                                                href={step.comicArtistUrl}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                className="w-full py-2 rounded-lg bg-gradient-to-r from-purple-600/80 to-indigo-600/80 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-sm shadow-lg border border-white/10 flex items-center justify-center gap-2 transition-all hover:shadow-purple-500/20"
+                                                                onClick={(e) => e.stopPropagation()}
+                                                            >
+                                                                <Icons.Sparkles className="w-4 h-4" />
+                                                                {step.comicArtistText}
+                                                            </a>
                                                         </div>
                                                     )}
 
