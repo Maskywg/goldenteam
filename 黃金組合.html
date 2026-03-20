@@ -529,6 +529,8 @@ ${footerInstruction}`;
                     deckEditText: "DeckEdit 簡報編輯",
                     nbEditorUrl: "https://notebooklm.10xboost.org/",
                     nbEditorText: "NotebookLM 簡報編輯器(免費)",
+                    nbPluginUrl: "https://docs.google.com/presentation/d/1oPqg28aDO0dS0SQ5g3iKKMeNzBUGLkFai8O3PicnEwY/edit?usp=sharing",
+                    nbPluginText: "NotebookLM 外掛插件",
                     note: "2026/2/18 開始 NotebookLM 已經可以下載PDF或PPTx兩種檔案，而且還可以在簡報生成後逐一的修改，但只限於新生成的簡報。",
                     color: "bg-yellow-900/60 text-yellow-200 border-yellow-500",
                     badge: "美化重製",
@@ -550,6 +552,8 @@ ${footerInstruction}`;
                     deckEditText: "DeckEdit 簡報編輯",
                     nbEditorUrl: "https://notebooklm.10xboost.org/",
                     nbEditorText: "NotebookLM 簡報編輯器(免費)",
+                    nbPluginUrl: "https://docs.google.com/presentation/d/1oPqg28aDO0dS0SQ5g3iKKMeNzBUGLkFai8O3PicnEwY/edit?usp=sharing",
+                    nbPluginText: "NotebookLM 外掛插件",
                     note: "2026/2/18 開始 NotebookLM 已經可以下載PDF或PPTx兩種檔案，而且還可以在簡報生成後逐一的修改，但只限於新生成的簡報。",
                     color: "bg-yellow-900/60 text-yellow-200 border-yellow-500",
                     badge: "成果發布"
@@ -859,6 +863,11 @@ ${footerInstruction}`;
                                                         {step.nbEditorUrl && (
                                                             <a href={step.nbEditorUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center px-3 py-2 rounded-lg bg-indigo-500/20 hover:bg-indigo-500/30 border border-indigo-500/40 text-xs font-bold uppercase tracking-wider transition-all duration-200 hover:scale-105 active:scale-95 text-indigo-200" onClick={(e) => e.stopPropagation()}>
                                                                 {step.nbEditorText} <Icons.Wand2 className="ml-2 w-3 h-3" />
+                                                            </a>
+                                                        )}
+                                                        {step.nbPluginUrl && (
+                                                            <a href={step.nbPluginUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center px-3 py-2 rounded-lg bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/40 text-xs font-bold uppercase tracking-wider transition-all duration-200 hover:scale-105 active:scale-95 text-purple-200" onClick={(e) => e.stopPropagation()}>
+                                                                {step.nbPluginText} <Icons.Zap className="ml-2 w-3 h-3" />
                                                             </a>
                                                         )}
                                                         {step.url && (
