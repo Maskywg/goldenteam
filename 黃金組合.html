@@ -945,7 +945,38 @@ ${footerInstruction}`;
                                 </div>
                             </div>
                         </main>
-                        <section className="max-w-6xl mx-auto mt-20 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+
+                        {/* 課後發問專區 */}
+                        <section className="max-w-4xl mx-auto mt-20 mb-10 px-4 text-center relative z-10 animate-fade-in-down">
+                            <div className="bg-slate-800/60 border border-indigo-500/30 rounded-3xl p-8 md:p-12 backdrop-blur-md shadow-[0_0_40px_rgba(99,102,241,0.1)] relative overflow-hidden group">
+                                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 opacity-80 group-hover:opacity-100 transition-opacity"></div>
+                                
+                                <div className="inline-flex items-center justify-center p-4 bg-indigo-500/20 rounded-full mb-6 shadow-inner">
+                                    <Icons.Bot className="w-10 h-10 text-indigo-400" />
+                                </div>
+                                
+                                <h2 className="text-2xl md:text-4xl font-extrabold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-indigo-300 to-purple-300">
+                                    課後發問專區
+                                </h2>
+                                
+                                <p className="text-slate-300 mb-8 max-w-2xl mx-auto leading-relaxed text-sm md:text-base">
+                                    如果在實作「Perplexity + Gemini 黃金工作流」的過程中有任何疑問，或者想了解更多進階技巧，歡迎點擊下方按鈕前往專屬的 AI 助教發問！
+                                </p>
+                                
+                                <a 
+                                    href="https://gemini.google.com/gem/1WyOcIqpd-oO23eyMsKNCG16lmY7L5CWW?usp=sharing"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center justify-center gap-3 px-8 py-4 rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-lg shadow-lg hover:shadow-indigo-500/25 transition-all duration-300 hover:-translate-y-1"
+                                >
+                                    <Icons.Sparkles className="w-5 h-5" />
+                                    前往專屬助教 Gem 發問
+                                    <Icons.ArrowRight className="w-5 h-5 ml-1 group-hover:translate-x-1 transition-transform" />
+                                </a>
+                            </div>
+                        </section>
+
+                        <section className="max-w-6xl mx-auto mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                             <BenefitCard title="雙模組獵人 (搜集)" subtitle="Perplexity & Gemini" features={["獵人1：Perplexity 廣搜", "獵人2：Gemini 深研", "全方位素材獲取"]} color="bg-teal-900/40 border-teal-700 text-teal-300" />
                             <BenefitCard title="NotebookLM (廚師)" subtitle="深度料理" features={["建立無幻覺知識庫", "交叉比對分析", "產出結構大綱"]} color="bg-purple-900/40 border-purple-700 text-purple-300" />
                             <BenefitCard title="雙軌生成 (戰術)" subtitle="殊途同歸" features={["Gemini 3.0 Canvas 流", "NotebookLM 轉檔流", "皆匯出為 PPTx"]} color="bg-rose-900/40 border-rose-700 text-rose-300" />
