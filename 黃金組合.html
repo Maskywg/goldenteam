@@ -30,6 +30,12 @@
         .markdown-body h1, .markdown-body h2, .markdown-body h3 { margin-top: 1em; margin-bottom: 0.5em; font-weight: bold; }
         .markdown-body p { margin-bottom: 1em; }
         .markdown-body strong { color: #a5b4fc; }
+        
+        /* Custom Scrollbar for modest styling */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.5); }
+        ::-webkit-scrollbar-thumb { background: rgba(99, 102, 241, 0.5); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(99, 102, 241, 0.8); }
     </style>
 </head>
 <body>
@@ -90,7 +96,11 @@
             Gift: (props) => <IconBase {...props}><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13"/><path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/><path d="M7.5 8a2.5 2.5 0 0 1 0-5A4.8 8 0 0 1 12 8a4.8 8 0 0 1 4.5-5 2.5 2.5 0 0 1 0 5"/></IconBase>,
             Code: (props) => <IconBase {...props}><polyline points="16 18 22 12 16 6" /><polyline points="8 6 2 12 8 18" /></IconBase>,
             Layout: (props) => <IconBase {...props}><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><line x1="3" x2="21" y1="9" y2="9"/><line x1="9" x2="9" y1="21" y2="9"/></IconBase>,
-            Info: (props) => <IconBase {...props}><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></IconBase>
+            Info: (props) => <IconBase {...props}><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></IconBase>,
+            Repeat: (props) => <IconBase {...props}><path d="m17 2 4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14"/><path d="m7 22-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/></IconBase>,
+            Megaphone: (props) => <IconBase {...props}><path d="m3 11 18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></IconBase>,
+            Mic: (props) => <IconBase {...props}><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></IconBase>,
+            GraduationCap: (props) => <IconBase {...props}><path d="M21.42 10.922a2 2 0 0 1-.019 3.138l-8.5 8.04a2 2 0 0 1-2.802 0l-8.5-8.04a2 2 0 0 1-.019-3.138l8.5-7.91a2 2 0 0 1 2.84 0l8.5 7.91Z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/></IconBase>
         };
 
         const DigitalRain = () => {
@@ -413,10 +423,122 @@ ${footerInstruction}`;
             );
         };
 
+        const RepurposeModal = ({ isOpen, onClose }) => {
+            const [copiedId, setCopiedId] = useState(null);
+
+            if (!isOpen) return null;
+
+            const handleCopy = (text, id) => {
+                copyToClipboard(text, () => {
+                    setCopiedId(id);
+                    setTimeout(() => setCopiedId(null), 2000);
+                });
+            };
+
+            const strategies = [
+                {
+                    id: 'blog',
+                    title: '1. 深度部落格文章 (Blog / Medium)',
+                    icon: <Icons.FileText className="w-5 h-5 text-blue-400" />,
+                    desc: '將簡報大綱與備忘錄，轉化為具備 SEO 優化的長篇技術文章。',
+                    prompt: '請根據這份簡報的大綱與講者備忘錄，擴寫成一篇約 1500 字的專業深度文章，適合發佈在 Medium 或專業部落格。請使用引人入勝的標題、清晰的段落結構（包含 H2, H3 標題），並在文末加上引導讀者討論的結語。'
+                },
+                {
+                    id: 'social',
+                    title: '2. 社群圖文串 (IG / LinkedIn Carousel)',
+                    icon: <Icons.Megaphone className="w-5 h-5 text-pink-400" />,
+                    desc: '提煉核心數據，轉為適合滑動閱讀的社群平台多圖文案。',
+                    prompt: '請從這份簡報中提煉出 5 個最核心的「反常識觀點」或「關鍵數據」。將每一個重點轉化為適合 Instagram 或 LinkedIn 多圖輪播（Carousel）的單頁文案，每頁字數控制在 50 字以內，語氣要自信且具啟發性，並在最後一頁加上 Call To Action。'
+                },
+                {
+                    id: 'video',
+                    title: '3. 短影音腳本 (Shorts / Reels)',
+                    icon: <Icons.Play className="w-5 h-5 text-red-400" />,
+                    desc: '濃縮精華，快速產出帶有分鏡指示的 60 秒短片腳本。',
+                    prompt: '請將這份簡報的精華轉化為一支 60 秒的短影音腳本（適合 TikTok/Reels/Shorts）。請使用表格呈現：左欄為「畫面分鏡建議」，右欄為「旁白口白」。開場前 3 秒必須有強烈的 Hook（鉤子）抓住觀眾注意力，整體節奏要明快。'
+                },
+                {
+                    id: 'newsletter',
+                    title: '4. 週末電子報 (Newsletter)',
+                    icon: <Icons.Globe className="w-5 h-5 text-teal-400" />,
+                    desc: '將龐大報告濃縮為輕鬆好讀的 Email 洞察。',
+                    prompt: '請將這份龐大的產業分析報告，濃縮成一封適合週末閱讀的「每週洞察電子報」。請包含：1. 一句吸睛的 Email 主旨 (Subject Line) 2. 3 個本週最值得關注的核心 Takeaways (條列式) 3. 一段帶有個人主觀看法的總結短評。'
+                },
+                {
+                    id: 'quiz',
+                    title: '5. 企業內訓測驗與指南 (Training)',
+                    icon: <Icons.GraduationCap className="w-5 h-5 text-yellow-400" />,
+                    desc: '將資料轉化為教育培訓的評量工具。',
+                    prompt: '你現在是一位企業內訓導師。請根據這份簡報內容，設計一份隨堂測驗。包含 5 題單選題（必須附上四個選項與正確解答解析），以及 2 題需要深度思考的申論題，用來測試學員是否真正吸收了簡報中的核心概念。'
+                }
+            ];
+
+            return (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={onClose}></div>
+                    <div className="relative bg-slate-800 border border-yellow-500/50 rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden shadow-2xl animate-fade-in-down flex flex-col">
+                        <div className="p-6 border-b border-white/10 flex justify-between items-center bg-slate-900/80">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 bg-yellow-500/20 rounded-lg"><Icons.Repeat className="w-6 h-6 text-yellow-400" /></div>
+                                <div>
+                                    <h2 className="text-xl font-bold text-white">資料輪迴 (一魚多吃) 策略指南</h2>
+                                    <p className="text-xs text-yellow-300/80">將高品質核心內容最大化利用的 Prompt 集合</p>
+                                </div>
+                            </div>
+                            <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors"><Icons.X className="w-6 h-6" /></button>
+                        </div>
+                        
+                        <div className="p-6 overflow-y-auto space-y-6 flex-grow bg-slate-800/50">
+                            <div className="text-sm text-slate-300 leading-relaxed bg-slate-900/50 p-4 rounded-xl border border-slate-700">
+                                💡 <strong className="text-yellow-400">核心心法：</strong> 我們費盡心思提煉出的「黃金資料」，不該只活在一次性的簡報裡。利用下方的 Prompt，將這些內容餵給 Gemini，立刻將其變形成各種行銷與教育資產！
+                            </div>
+
+                            <div className="space-y-5">
+                                {strategies.map((strategy) => (
+                                    <div key={strategy.id} className="bg-slate-900 rounded-xl p-5 border border-slate-700/50 hover:border-yellow-500/30 transition-colors">
+                                        <div className="flex items-center gap-3 mb-2">
+                                            {strategy.icon}
+                                            <h3 className="text-base font-bold text-slate-100">{strategy.title}</h3>
+                                        </div>
+                                        <p className="text-xs text-slate-400 mb-4 pl-8">{strategy.desc}</p>
+                                        
+                                        <div className="relative bg-slate-950 p-4 rounded-lg border border-slate-800 group pl-8">
+                                            <div className="text-xs text-yellow-200/90 font-mono leading-relaxed pr-10 whitespace-pre-wrap">
+                                                {strategy.prompt}
+                                            </div>
+                                            <button 
+                                                onClick={() => handleCopy(strategy.prompt, strategy.id)}
+                                                className={`absolute top-3 right-3 p-2 rounded-md transition-all ${copiedId === strategy.id ? 'bg-green-500/20 text-green-400' : 'bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700'}`}
+                                                title="複製 Prompt"
+                                            >
+                                                {copiedId === strategy.id ? <Icons.CheckCircle2 className="w-4 h-4" /> : <Icons.Copy className="w-4 h-4" />}
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+
+                                {/* 終極輪迴特別區塊 */}
+                                <div className="bg-gradient-to-r from-slate-900 to-indigo-900/40 rounded-xl p-5 border border-indigo-500/30">
+                                    <div className="flex items-center gap-3 mb-2">
+                                        <Icons.Layers className="w-5 h-5 text-indigo-400" />
+                                        <h3 className="text-base font-bold text-indigo-200">6. 終極輪迴：反向疊代 (Feedback Loop)</h3>
+                                    </div>
+                                    <p className="text-sm text-slate-300 pl-8 leading-relaxed">
+                                        將這次產出的「最終完美簡報」與「精修過的文章」，<strong className="text-indigo-300">再次匯出為 PDF 並上傳回 NotebookLM 成為新的 Source</strong>。未來的專案就能基於這次優化過的觀點向上疊加，讓知識庫像雪球般越滾越大！
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
         const WorkflowApp = () => {
             const [activeStep, setActiveStep] = useState(null);
             const [isChefModalOpen, setIsChefModalOpen] = useState(false);
             const [isPromptModalOpen, setIsPromptModalOpen] = useState(false);
+            const [isRepurposeModalOpen, setIsRepurposeModalOpen] = useState(false);
             
             // Hunter State
             const [hunterTopic, setHunterTopic] = useState('');
@@ -501,7 +623,6 @@ ${footerInstruction}`;
                     color: "bg-gradient-to-r from-pink-900/60 to-rose-900/60 text-rose-200 border-rose-500",
                     badge: "簡報生成",
                     hitl: "關鍵決策：選擇生成策略",
-                    stylePrompt: "你覺得這個內容再給到 NotebookLM 的簡報功能去輸出，應該用什麼樣的描述摘要（不要涉及具體內容，而是風格和格式描述）方便生成更驚豔美觀的 ppt",
                     roleSelector: "請幫我找尋適合介紹這個議題的漫畫人物，電視電影主角或者是歷史名人 或者是任何你想得到的角色。",
                     comicArtistUrl: "https://gemini.google.com/gem/1v-m5kjytvVz71dJmyc0YAMKsoL45-BoP?usp=sharing",
                     comicArtistText: "漫畫角色轉化繪師",
@@ -549,19 +670,15 @@ ${footerInstruction}`;
                     title: "簡報輸出與分享",
                     description: "完成的簡報可匯出為 PDF/PPTX 或生成連結直接在線共享，完美展示經過多重 AI 優化後的成果。",
                     icon: <Icons.Share2 className="w-6 h-6" />,
-                    tool: "Google Slides",
-                    url: "https://slides.google.com/",
-                    editUrl: "https://kevinchaiimagetowordv2.netlify.app/",
-                    videoUrl: "https://www.youtube.com/watch?v=R_CwAva8bks",
-                    videoText: "拿回文字主導",
-                    pdfPptUrl: "https://codia.ai/noteslide",
-                    pdfPptText: "PDF轉可修PPT",
-                    deckEditUrl: "https://deckedit.com/zh-Hant",
-                    deckEditText: "DeckEdit 簡報編輯",
-                    nbEditorUrl: "https://notebooklm.10xboost.org/",
-                    nbEditorText: "NotebookLM 簡報編輯器(免費)",
-                    nbPluginUrl: "https://docs.google.com/presentation/d/1oPqg28aDO0dS0SQ5g3iKKMeNzBUGLkFai8O3PicnEwY/edit?usp=sharing",
-                    nbPluginText: "NotebookLM 外掛插件",
+                    tool: "多重發布管道",
+                    exportMethods: [
+                        { name: "Google 簡報", icon: <Icons.Layout className="w-4 h-4" />, url: "https://docs.google.com/presentation/u/0/" },
+                        { name: "PowerPoint", icon: <Icons.FileUp className="w-4 h-4" />, url: "https://www.microsoft.com/zh-tw/microsoft-365/powerpoint" },
+                        { name: "Google Vids", icon: <Icons.Play className="w-4 h-4" />, url: "https://docs.google.com/videos/d/1d63JThFvJ-5MfEm_aunsq-OZjJABiisArgshW0oO5gc/edit?scene=id.p#scene=id.p" },
+                        { name: "資料輪迴", icon: <Icons.ArrowLeftRight className="w-4 h-4" />, action: "repurpose" },
+                        { name: "Gem創建", icon: <Icons.Sparkles className="w-4 h-4" />, url: "https://gemini.google.com/gems/view" },
+                        { name: "網頁創建", icon: <Icons.Globe className="w-4 h-4" />, url: "https://gemini.google.com/app?utm_source=app_launcher&utm_medium=owned&utm_campaign=base_all" }
+                    ],
                     note: "2026/2/18 開始 NotebookLM 已經可以下載PDF或PPTx兩種檔案，而且還可以在簡報生成後逐一的修改。",
                     color: "bg-yellow-900/60 text-yellow-200 border-yellow-500",
                     badge: "成果發布"
@@ -573,6 +690,8 @@ ${footerInstruction}`;
                     <DigitalRain />
                     <ChefModal isOpen={isChefModalOpen} onClose={() => setIsChefModalOpen(false)} />
                     <PromptGeneratorModal isOpen={isPromptModalOpen} onClose={() => setIsPromptModalOpen(false)} />
+                    <RepurposeModal isOpen={isRepurposeModalOpen} onClose={() => setIsRepurposeModalOpen(false)} />
+                    
                     <div className="relative z-10">
                         <header className="max-w-4xl mx-auto text-center mb-12 animate-fade-in-down">
                             <div className="inline-flex items-center justify-center p-2 bg-slate-800/80 rounded-full shadow-sm mb-4 border border-slate-700 backdrop-blur-sm">
@@ -586,56 +705,29 @@ ${footerInstruction}`;
                                 從獵人搜集、廚師料理，到 <span className="font-bold text-rose-400">雙軌生成與 Nano 精修</span>，打造最完整的 AI 工作流。
                             </p>
                             
-                            {/* 更新：三按鈕區域 (新增探勘優化策略) */}
                             <div className="flex flex-wrap justify-center gap-4">
-                                {/* 核心價值按鈕 */}
-                                <a 
-                                    href="https://docs.google.com/presentation/d/1r0Afy3b3ImLM9LClqiyCSVk__A8OLIY--2m1R4nuKkw/edit?usp=sharing" 
-                                    target="_blank" 
-                                    rel="noopener noreferrer" 
-                                    className="group relative inline-flex items-center gap-3 px-8 py-3 bg-slate-900/50 hover:bg-slate-800 border border-slate-700 hover:border-blue-500/50 rounded-full transition-all duration-300 hover:shadow-[0_0_20px_rgba(59,130,246,0.2)] hover:-translate-y-1"
-                                >
+                                <a href="https://docs.google.com/presentation/d/1r0Afy3b3ImLM9LClqiyCSVk__A8OLIY--2m1R4nuKkw/edit?usp=sharing" target="_blank" rel="noopener noreferrer" className="group relative inline-flex items-center gap-3 px-8 py-3 bg-slate-900/50 hover:bg-slate-800 border border-slate-700 hover:border-blue-500/50 rounded-full transition-all duration-300 hover:shadow-[0_0_20px_rgba(59,130,246,0.2)] hover:-translate-y-1">
                                     <span className="absolute inset-0 rounded-full bg-gradient-to-r from-blue-500/10 to-purple-500/10 opacity-0 group-hover:opacity-100 transition-opacity"></span>
                                     <Icons.BookOpen className="w-5 h-5 text-blue-400 group-hover:scale-110 transition-transform duration-300" />
                                     <span className="text-base font-bold text-slate-200 group-hover:text-white tracking-wide">核心價值</span>
                                     <Icons.ExternalLink className="w-4 h-4 text-slate-500 group-hover:text-blue-300 transition-colors" />
                                 </a>
 
-                                {/* 簡略摘要按鈕 */}
-                                <a 
-                                    href="https://docs.google.com/presentation/d/1iUQO9gjdNzI2bfK7KaXndfORJzAFL0N10hw9Jedokkk/edit?usp=sharing" 
-                                    target="_blank" 
-                                    rel="noopener noreferrer" 
-                                    className="group relative inline-flex items-center gap-3 px-8 py-3 bg-slate-900/50 hover:bg-slate-800 border border-slate-700 hover:border-purple-500/50 rounded-full transition-all duration-300 hover:shadow-[0_0_20px_rgba(168,85,247,0.2)] hover:-translate-y-1"
-                                >
+                                <a href="https://docs.google.com/presentation/d/1iUQO9gjdNzI2bfK7KaXndfORJzAFL0N10hw9Jedokkk/edit?usp=sharing" target="_blank" rel="noopener noreferrer" className="group relative inline-flex items-center gap-3 px-8 py-3 bg-slate-900/50 hover:bg-slate-800 border border-slate-700 hover:border-purple-500/50 rounded-full transition-all duration-300 hover:shadow-[0_0_20px_rgba(168,85,247,0.2)] hover:-translate-y-1">
                                     <span className="absolute inset-0 rounded-full bg-gradient-to-r from-purple-500/10 to-pink-500/10 opacity-0 group-hover:opacity-100 transition-opacity"></span>
                                     <Icons.Layers className="w-5 h-5 text-purple-400 group-hover:scale-110 transition-transform duration-300" />
                                     <span className="text-base font-bold text-slate-200 group-hover:text-white tracking-wide">簡略摘要</span>
                                     <Icons.ExternalLink className="w-4 h-4 text-slate-500 group-hover:text-purple-300 transition-colors" />
                                 </a>
 
-                                {/* 探勘優化策略按鈕 */}
-                                <a 
-                                    href="https://drive.google.com/file/d/1eWgBFccUjcwQbFUGIW1g64QJMLHtxBGm/view?usp=sharing" 
-                                    target="_blank" 
-                                    rel="noopener noreferrer" 
-                                    title="依照資料樣態優化探勘流程"
-                                    className="group relative inline-flex items-center gap-3 px-8 py-3 bg-slate-900/50 hover:bg-slate-800 border border-slate-700 hover:border-teal-500/50 rounded-full transition-all duration-300 hover:shadow-[0_0_20px_rgba(20,184,166,0.2)] hover:-translate-y-1"
-                                >
+                                <a href="https://drive.google.com/file/d/1eWgBFccUjcwQbFUGIW1g64QJMLHtxBGm/view?usp=sharing" target="_blank" rel="noopener noreferrer" title="依照資料樣態優化探勘流程" className="group relative inline-flex items-center gap-3 px-8 py-3 bg-slate-900/50 hover:bg-slate-800 border border-slate-700 hover:border-teal-500/50 rounded-full transition-all duration-300 hover:shadow-[0_0_20px_rgba(20,184,166,0.2)] hover:-translate-y-1">
                                     <span className="absolute inset-0 rounded-full bg-gradient-to-r from-teal-500/10 to-emerald-500/10 opacity-0 group-hover:opacity-100 transition-opacity"></span>
                                     <Icons.Compass className="w-5 h-5 text-teal-400 group-hover:scale-110 transition-transform duration-300" />
                                     <span className="text-base font-bold text-slate-200 group-hover:text-white tracking-wide">探勘優化策略</span>
                                     <Icons.ExternalLink className="w-4 h-4 text-slate-500 group-hover:text-teal-300 transition-colors" />
                                 </a>
 
-                                {/* 新增：懶人包按鈕 */}
-                                <a 
-                                    href="https://drive.google.com/file/d/1xbgXIK0nCaILeRefTUN9e2dXCS7-KPS_/view?usp=sharing" 
-                                    target="_blank" 
-                                    rel="noopener noreferrer" 
-                                    title="懶人包"
-                                    className="group relative inline-flex items-center gap-3 px-8 py-3 bg-slate-900/50 hover:bg-slate-800 border border-slate-700 hover:border-orange-500/50 rounded-full transition-all duration-300 hover:shadow-[0_0_20px_rgba(249,115,22,0.2)] hover:-translate-y-1"
-                                >
+                                <a href="https://drive.google.com/file/d/1xbgXIK0nCaILeRefTUN9e2dXCS7-KPS_/view?usp=sharing" target="_blank" rel="noopener noreferrer" title="懶人包" className="group relative inline-flex items-center gap-3 px-8 py-3 bg-slate-900/50 hover:bg-slate-800 border border-slate-700 hover:border-orange-500/50 rounded-full transition-all duration-300 hover:shadow-[0_0_20px_rgba(249,115,22,0.2)] hover:-translate-y-1">
                                     <span className="absolute inset-0 rounded-full bg-gradient-to-r from-orange-500/10 to-amber-500/10 opacity-0 group-hover:opacity-100 transition-opacity"></span>
                                     <Icons.Gift className="w-5 h-5 text-orange-400 group-hover:scale-110 transition-transform duration-300" />
                                     <span className="text-base font-bold text-slate-200 group-hover:text-white tracking-wide">懶人包</span>
@@ -646,6 +738,21 @@ ${footerInstruction}`;
                         <main className="max-w-3xl mx-auto relative">
                             <div className="absolute left-8 md:left-1/2 top-4 bottom-4 w-1 bg-slate-700 transform -translate-x-1/2 hidden md:block z-0"></div>
                             <div className="absolute left-6 top-4 bottom-4 w-1 bg-slate-700 md:hidden z-0"></div>
+                            
+                            {/* 應用項目小按鈕 */}
+                            <div className="flex justify-center mb-10 relative z-10 animate-fade-in-down">
+                                <a 
+                                    href="https://docs.google.com/presentation/d/1O2juCpuArs1xZryoBHJ3m5EjfJUAkxK9/edit?usp=sharing&ouid=102321941481506461639&rtpof=true&sd=true"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="group inline-flex items-center gap-2 px-5 py-2 rounded-full bg-indigo-500/10 border border-indigo-500/30 hover:bg-indigo-500/20 hover:border-indigo-500/50 text-sm font-bold text-indigo-300 transition-all hover:scale-105 hover:shadow-[0_0_15px_rgba(99,102,241,0.2)]"
+                                >
+                                    <Icons.Sparkles className="w-4 h-4 text-indigo-400 group-hover:animate-pulse" />
+                                    這個黃金組合可以應用在哪些項目上面？
+                                    <Icons.ExternalLink className="w-3 h-3 opacity-70" />
+                                </a>
+                            </div>
+
                             <div className="space-y-8 relative z-10">
                                 {steps.map((step, index) => {
                                     const isEven = index % 2 === 0;
@@ -821,27 +928,6 @@ ${footerInstruction}`;
                                                         </div>
                                                     )}
 
-                                                    {/* 新增的風格建議 Prompt */}
-                                                    {step.stylePrompt && (
-                                                        <div className="mt-2 mb-2 bg-indigo-900/30 p-3 rounded-lg border border-indigo-500/30 relative group/prompt">
-                                                            <div className="flex items-center gap-2 mb-1">
-                                                                <Icons.Sparkles className="w-3 h-3 text-indigo-400" />
-                                                                <span className="text-[10px] text-indigo-300 font-bold uppercase">風格建議 Prompt (讓NotebookLM幫你建議)</span>
-                                                            </div>
-                                                            <div className="text-xs text-slate-300 font-mono leading-relaxed pr-6">{step.stylePrompt}</div>
-                                                            <button 
-                                                                onClick={(e) => { 
-                                                                    e.stopPropagation(); 
-                                                                    copyToClipboard(step.stylePrompt, () => {});
-                                                                }}
-                                                                className="absolute top-2 right-2 text-indigo-400/60 hover:text-indigo-200 transition-colors p-1 rounded hover:bg-indigo-500/20"
-                                                                title="複製 Prompt"
-                                                            >
-                                                                <Icons.Copy className="w-3 h-3" />
-                                                            </button>
-                                                        </div>
-                                                    )}
-
                                                     {/* 新增的 Role Selector Prompt */}
                                                     {step.roleSelector && (
                                                         <div className="mt-2 mb-2 bg-indigo-900/30 p-3 rounded-lg border border-indigo-500/30 relative group/prompt">
@@ -865,7 +951,7 @@ ${footerInstruction}`;
                                                         </div>
                                                     )}
 
-                                                    {/* 漫畫角色轉化繪師按鈕 */}
+                                                    {/* 漫畫角色轉化繪師按鈕 (放在角色靈感之上) */}
                                                     {step.comicArtistUrl && (
                                                         <div className="mt-4 mb-4">
                                                             {step.comicArtistNote && (
@@ -914,42 +1000,78 @@ ${footerInstruction}`;
                                                         </>
                                                     )}
 
-                                                    <div className="mt-auto pt-2 flex flex-wrap justify-end gap-2">
-                                                        {step.demoUrl && (
-                                                            <a href={step.demoUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center px-3 py-2 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-xs font-bold uppercase tracking-wider transition-all duration-200 hover:scale-105 active:scale-95 text-emerald-200" onClick={(e) => e.stopPropagation()}>查看說明<Icons.BookOpen className="ml-2 w-3 h-3" /></a>
-                                                        )}
-                                                        {step.editUrl && (
-                                                            <a href={step.editUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center px-3 py-2 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-xs font-bold uppercase tracking-wider transition-all duration-200 hover:scale-105 active:scale-95 text-amber-200" onClick={(e) => e.stopPropagation()}>文字修改<Icons.PenTool className="ml-2 w-3 h-3" /></a>
-                                                        )}
-                                                        {step.pdfPptUrl && (
-                                                            <a href={step.pdfPptUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center px-3 py-2 rounded-lg bg-orange-500/20 hover:bg-orange-500/30 border border-orange-500/40 text-xs font-bold uppercase tracking-wider transition-all duration-200 hover:scale-105 active:scale-95 text-orange-200" onClick={(e) => e.stopPropagation()}>
-                                                                {step.pdfPptText || "PDF to PPT"} <Icons.FileUp className="ml-2 w-3 h-3" />
-                                                            </a>
-                                                        )}
-                                                        {step.deckEditUrl && (
-                                                            <a href={step.deckEditUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center px-3 py-2 rounded-lg bg-sky-500/20 hover:bg-sky-500/30 border border-sky-500/40 text-xs font-bold uppercase tracking-wider transition-all duration-200 hover:scale-105 active:scale-95 text-sky-200" onClick={(e) => e.stopPropagation()}>
-                                                                {step.deckEditText} <Icons.Layout className="ml-2 w-3 h-3" />
-                                                            </a>
-                                                        )}
-                                                        {step.nbEditorUrl && (
-                                                            <a href={step.nbEditorUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center px-3 py-2 rounded-lg bg-indigo-500/20 hover:bg-indigo-500/30 border border-indigo-500/40 text-xs font-bold uppercase tracking-wider transition-all duration-200 hover:scale-105 active:scale-95 text-indigo-200" onClick={(e) => e.stopPropagation()}>
-                                                                {step.nbEditorText} <Icons.Wand2 className="ml-2 w-3 h-3" />
-                                                            </a>
-                                                        )}
-                                                        {step.nbPluginUrl && (
-                                                            <a href={step.nbPluginUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center px-3 py-2 rounded-lg bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/40 text-xs font-bold uppercase tracking-wider transition-all duration-200 hover:scale-105 active:scale-95 text-purple-200" onClick={(e) => e.stopPropagation()}>
-                                                                {step.nbPluginText} <Icons.Zap className="ml-2 w-3 h-3" />
-                                                            </a>
-                                                        )}
-                                                        {step.url && (
-                                                            <a href={step.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 border border-white/20 text-xs font-bold uppercase tracking-wider transition-all duration-200 hover:scale-105 active:scale-95" onClick={(e) => e.stopPropagation()}>Open Tool<Icons.ExternalLink className="ml-2 w-3 h-3" /></a>
-                                                        )}
-                                                        {step.videoUrl && (
-                                                            <a href={step.videoUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center px-3 py-2 rounded-lg bg-red-500/20 hover:bg-red-500/30 border border-red-500/40 text-xs font-bold uppercase tracking-wider transition-all duration-200 hover:scale-105 active:scale-95 text-red-200" onClick={(e) => e.stopPropagation()}>
-                                                                {step.videoText}<Icons.Play className="ml-2 w-3 h-3" />
-                                                            </a>
-                                                        )}
-                                                    </div>
+                                                    {/* Step 5 專屬的輸出與分享區塊 */}
+                                                    {step.exportMethods && (
+                                                        <div className="mt-4 pt-3 border-t border-white/10">
+                                                            <div className="text-[10px] font-bold text-yellow-500/80 uppercase tracking-wider mb-3">輸出與分享方式：</div>
+                                                            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                                                                {step.exportMethods.map((method, mIdx) => {
+                                                                    if (method.action === 'repurpose') {
+                                                                        return (
+                                                                            <button key={mIdx} onClick={(e) => { e.stopPropagation(); setIsRepurposeModalOpen(true); }} className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border border-yellow-500/50 text-xs font-bold text-yellow-100 shadow-[0_0_10px_rgba(234,179,8,0.2)] hover:from-yellow-500/30 hover:to-orange-500/30 hover:scale-105 active:scale-95 transition-all">
+                                                                                {method.icon && <span className="opacity-90">{method.icon}</span>}
+                                                                                {method.name}
+                                                                            </button>
+                                                                        );
+                                                                    }
+                                                                    return method.url ? (
+                                                                        <a key={mIdx} href={method.url} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-yellow-500/20 border border-yellow-500/40 text-xs font-bold text-yellow-100 shadow-sm hover:bg-yellow-500/30 hover:scale-105 active:scale-95 transition-all" onClick={(e) => e.stopPropagation()}>
+                                                                            {method.icon && <span className="opacity-90">{method.icon}</span>}
+                                                                            {method.name}
+                                                                            <Icons.ExternalLink className="w-3 h-3 opacity-70 ml-0.5" />
+                                                                        </a>
+                                                                    ) : (
+                                                                        <div key={mIdx} className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-yellow-500/10 border border-yellow-500/20 text-xs font-bold text-yellow-200 shadow-sm cursor-default">
+                                                                            {method.icon && <span className="opacity-70">{method.icon}</span>}
+                                                                            {method.name}
+                                                                        </div>
+                                                                    );
+                                                                })}
+                                                            </div>
+                                                        </div>
+                                                    )}
+
+                                                    {/* 一般按鈕的渲染 */}
+                                                    {(!step.exportMethods) && (
+                                                        <div className="mt-auto pt-2 flex flex-wrap justify-end gap-2">
+                                                            {step.url && (
+                                                                <a href={step.url} target="_blank" rel="noopener noreferrer" className="w-full inline-flex items-center justify-center px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 border border-white/20 text-xs font-bold uppercase tracking-wider transition-all duration-200 hover:scale-105 active:scale-95" onClick={(e) => e.stopPropagation()}>
+                                                                    {step.urlText || "查看連結"} <Icons.ExternalLink className="ml-2 w-3 h-3" />
+                                                                </a>
+                                                            )}
+                                                            {step.demoUrl && (
+                                                                <a href={step.demoUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center px-3 py-2 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-xs font-bold uppercase tracking-wider transition-all duration-200 hover:scale-105 active:scale-95 text-emerald-200" onClick={(e) => e.stopPropagation()}>查看說明<Icons.BookOpen className="ml-2 w-3 h-3" /></a>
+                                                            )}
+                                                            {step.editUrl && (
+                                                                <a href={step.editUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center px-3 py-2 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-xs font-bold uppercase tracking-wider transition-all duration-200 hover:scale-105 active:scale-95 text-amber-200" onClick={(e) => e.stopPropagation()}>文字修改<Icons.PenTool className="ml-2 w-3 h-3" /></a>
+                                                            )}
+                                                            {step.pdfPptUrl && (
+                                                                <a href={step.pdfPptUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center px-3 py-2 rounded-lg bg-orange-500/20 hover:bg-orange-500/30 border border-orange-500/40 text-xs font-bold uppercase tracking-wider transition-all duration-200 hover:scale-105 active:scale-95 text-orange-200" onClick={(e) => e.stopPropagation()}>
+                                                                    {step.pdfPptText || "PDF to PPT"} <Icons.FileUp className="ml-2 w-3 h-3" />
+                                                                </a>
+                                                            )}
+                                                            {step.deckEditUrl && (
+                                                                <a href={step.deckEditUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center px-3 py-2 rounded-lg bg-sky-500/20 hover:bg-sky-500/30 border border-sky-500/40 text-xs font-bold uppercase tracking-wider transition-all duration-200 hover:scale-105 active:scale-95 text-sky-200" onClick={(e) => e.stopPropagation()}>
+                                                                    {step.deckEditText} <Icons.Layout className="ml-2 w-3 h-3" />
+                                                                </a>
+                                                            )}
+                                                            {step.nbEditorUrl && (
+                                                                <a href={step.nbEditorUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center px-3 py-2 rounded-lg bg-indigo-500/20 hover:bg-indigo-500/30 border border-indigo-500/40 text-xs font-bold uppercase tracking-wider transition-all duration-200 hover:scale-105 active:scale-95 text-indigo-200" onClick={(e) => e.stopPropagation()}>
+                                                                    {step.nbEditorText} <Icons.Wand2 className="ml-2 w-3 h-3" />
+                                                                </a>
+                                                            )}
+                                                            {step.nbPluginUrl && (
+                                                                <a href={step.nbPluginUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center px-3 py-2 rounded-lg bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/40 text-xs font-bold uppercase tracking-wider transition-all duration-200 hover:scale-105 active:scale-95 text-purple-200" onClick={(e) => e.stopPropagation()}>
+                                                                    {step.nbPluginText} <Icons.Zap className="ml-2 w-3 h-3" />
+                                                                </a>
+                                                            )}
+                                                            {step.videoUrl && (
+                                                                <a href={step.videoUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center px-3 py-2 rounded-lg bg-red-500/20 hover:bg-red-500/30 border border-red-500/40 text-xs font-bold uppercase tracking-wider transition-all duration-200 hover:scale-105 active:scale-95 text-red-200" onClick={(e) => e.stopPropagation()}>
+                                                                    {step.videoText}<Icons.Play className="ml-2 w-3 h-3" />
+                                                                </a>
+                                                            )}
+                                                        </div>
+                                                    )}
                                                 </div>
                                             </div>
                                             <div className="absolute left-6 md:left-1/2 transform -translate-x-1/2 flex flex-col items-center justify-center">
