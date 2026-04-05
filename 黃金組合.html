@@ -187,7 +187,8 @@
                 subject: '',
                 creator: '',
                 source: '',
-                style: '',
+                presentationStyle: '',
+                visualStyle: '',
                 content: '',
                 audience: ''
             });
@@ -201,8 +202,8 @@
             }, [isOpen]);
 
             const generatedPrompt = useMemo(() => {
-                const { subject, creator, source, style, content, audience } = inputs;
-                if (!subject && !source && !style && !content && !audience && !creator) return "請填寫左側欄位以產生 Prompt...";
+                const { subject, creator, source, presentationStyle, visualStyle, content, audience } = inputs;
+                if (!subject && !source && !presentationStyle && !visualStyle && !content && !audience && !creator) return "請填寫左側欄位以產生 Prompt...";
                 
                 const roleDescription = useSubjectAsRole && subject 
                     ? `角色設定：你是${subject}。` 
@@ -214,7 +215,8 @@
 • 製作者：${creator || '[請輸入製作者]'}
 • 目標對象：${audience || '[請輸入對象]'}
 • 資料來源：${source || '[請輸入來源]'}
-• 設計風格：${style || '[請輸入風格]'}
+• 簡報與資訊圖表演示風格：${presentationStyle || '[未指定，請根據主題自由發揮]'}
+• 簡報與資訊圖表的視覺風格：${visualStyle || '[未指定，請根據主題自由發揮]'}
 
 【內容要求】
 請根據上述設定，並涵蓋以下重點內容：
@@ -374,10 +376,71 @@ ${footerInstruction}`;
                                         </div>
                                     </div>
                                 </div>
+                                
                                 <div>
-                                    <label className="text-xs font-bold text-slate-400 uppercase mb-1 block">簡報風格</label>
-                                    <input type="text" value={inputs.style} onChange={e => handleChange('style', e.target.value)} placeholder="例如：專業嚴謹、活潑互動、Steve Jobs 極簡風..." className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:border-rose-500 focus:outline-none transition-colors" />
+                                    <label className="text-xs font-bold text-slate-400 uppercase mb-1 block">1. 簡報與資訊圖表演示風格</label>
+                                    <div className="relative">
+                                        <select 
+                                            value={inputs.presentationStyle} 
+                                            onChange={e => handleChange('presentationStyle', e.target.value)} 
+                                            className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:border-rose-500 focus:outline-none transition-colors appearance-none cursor-pointer"
+                                        >
+                                            <option value="">-- 請選擇演示風格 (不指定) --</option>
+                                            <optgroup label="簡報風格">
+                                                <option value="五分鐘電梯簡報 (Elevator Pitch) - 極度精簡、核心數據、行動建議">五分鐘電梯簡報 (Elevator Pitch)</option>
+                                                <option value="創業投資人簡報 (Investor Deck) - 痛點/方案/市場/競爭/商業模式">創業投資人簡報 (Investor Deck)</option>
+                                                <option value="逐步操作教學 (Step-by-Step) - 目標/工具/動作、單頁單步驟">逐步操作教學 (Step-by-Step)</option>
+                                                <option value="視覺化對比表 (Comparison Slide) - Before vs. After、優缺點對稱">視覺化對比表 (Comparison Slide)</option>
+                                                <option value="問答型簡報 (Q&A Style) - 以問題為標題、精確解答">問答型簡報 (Q&A Style)</option>
+                                            </optgroup>
+                                            <optgroup label="資訊圖表">
+                                                <option value="時間軸編年史 (Timeline) - 按時間排序、標註里程碑與轉折點">時間軸編年史 (Timeline)</option>
+                                                <option value="漏斗式層次結構 (The Funnel) - 廣泛背景到核心結論的層層過濾">漏斗式層次結構 (The Funnel)</option>
+                                                <option value="蜘蛛網/雷達圖描述 (Radar Chart) - 多維度評分（如效能、成本、安全）">蜘蛛網/雷達圖描述 (Radar Chart)</option>
+                                                <option value="數據儀表板 (Data Dashboard) - 大字報形式、百分比與增長率">數據儀表板 (Data Dashboard)</option>
+                                                <option value="解剖結構圖說明 (Anatomy of...) - 拆解系統零件、逐一註解說明">解剖結構圖說明 (Anatomy of...)</option>
+                                            </optgroup>
+                                        </select>
+                                        <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none text-slate-400">
+                                            <svg className="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" fillRule="evenodd"></path></svg>
+                                        </div>
+                                    </div>
                                 </div>
+
+                                <div>
+                                    <label className="text-xs font-bold text-slate-400 uppercase mb-1 block">2. 簡報與資訊圖表的視覺風格</label>
+                                    <div className="relative">
+                                        <select 
+                                            value={inputs.visualStyle} 
+                                            onChange={e => handleChange('visualStyle', e.target.value)} 
+                                            className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:border-rose-500 focus:outline-none transition-colors appearance-none cursor-pointer"
+                                        >
+                                            <option value="">-- 請選擇視覺風格 (不指定) --</option>
+                                            <optgroup label="寫實風格">
+                                                <option value="超寫實攝影 (Hyper-realistic) - 極高細節、光影真實、毛孔/紋理清晰">超寫實攝影 (Hyper-realistic)</option>
+                                                <option value="電影感光影 (Cinematic Lighting) - 強烈明暗對比、有故事氛圍、寬螢幕比例">電影感光影 (Cinematic Lighting)</option>
+                                                <option value="微距攝影 (Macro Photography) - 極淺景深、放大局部細節、細微構造">微距攝影 (Macro Photography)</option>
+                                            </optgroup>
+                                            <optgroup label="藝術風格">
+                                                <option value="印象派油畫 (Impressionism) - 可見筆觸、光影變幻、色彩堆疊">印象派油畫 (Impressionism)</option>
+                                                <option value="浮世繪 (Ukiyo-e) - 鮮明線條、平面化色彩、日式美學">浮世繪 (Ukiyo-e)</option>
+                                                <option value="水墨畫 (Ink Wash Painting) - 虛實結合、留白藝術、意境深遠">水墨畫 (Ink Wash Painting)</option>
+                                                <option value="波普藝術 (Pop Art) - 高飽和對比色、點狀網紋、大膽線條">波普藝術 (Pop Art)</option>
+                                            </optgroup>
+                                            <optgroup label="設計風格">
+                                                <option value="包浩斯 (Bauhaus) - 幾何圖形、紅黃藍三原色、功能導向排版">包浩斯 (Bauhaus)</option>
+                                                <option value="新摩登主義 (Neumorphism) - 低對比浮雕感、軟性陰影、極簡介面">新摩登主義 (Neumorphism)</option>
+                                                <option value="極簡主義 (Minimalism) - 大量留白、無多餘裝飾、清晰對比">極簡主義 (Minimalism)</option>
+                                                <option value="扁平化插畫 (Flat Design) - 單純色塊、無陰影、俐落邊界">扁平化插畫 (Flat Design)</option>
+                                                <option value="3D等距視角 (Isometric 3D) - 等比例立角、微縮模型感">3D等距視角 (Isometric 3D)</option>
+                                            </optgroup>
+                                        </select>
+                                        <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none text-slate-400">
+                                            <svg className="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" fillRule="evenodd"></path></svg>
+                                        </div>
+                                    </div>
+                                </div>
+
                                 <div>
                                     <label className="text-xs font-bold text-slate-400 uppercase mb-1 block">簡報重點內容</label>
                                     <textarea value={inputs.content} onChange={e => handleChange('content', e.target.value)} rows="4" placeholder="請列出必須包含的關鍵數據、結論或章節..." className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:border-rose-500 focus:outline-none transition-colors resize-none"></textarea>
